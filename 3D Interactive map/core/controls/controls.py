@@ -1,6 +1,7 @@
 from math import pi, sin, cos
+from direct.gui.OnscreenText import OnscreenText
 from direct.showbase.ShowBaseGlobal import globalClock
-from panda3d.core import WindowProperties
+from panda3d.core import WindowProperties, TextNode
 
 from core.controls import camera,directions,keyMap
 # from core.controls.camera import captureMouse
@@ -25,6 +26,14 @@ class Controls:
             "up": False,
             "down": False,
         }
+        self.posText = OnscreenText(
+            text="",
+            pos=(-1.3, 0.9),  # Lewy górny róg (x, y)
+            scale=0.05,
+            fg=(1, 1, 1, 1),
+            align=TextNode.ALeft,
+            mayChange=True
+        )
         
 
     def setupControls(self,app):
@@ -80,6 +89,11 @@ class Controls:
         self.activeKeys[key] = value
     
     def update(self, task):
+        # Heads-up display
+        pos = self.app.camera.getPos()
+        hpr = self.app.camera.getHpr()
+        self.posText.setText(f"X: {pos.x:.1f} Y: {pos.y:.1f} Z: {pos.z:.1f} | H: {hpr.x:.1f} P: {hpr.y:.1f}")
+        
         dt = globalClock.getDt()
         
         playerMoveSpeed = 10

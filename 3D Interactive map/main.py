@@ -29,7 +29,7 @@ class MyGame(ShowBase):
         self.win.requestProperties(properties)
 
         self.disableMouse()
-        self.camera.setPos(0, 0, 3)
+        self.camera.setPosHpr(130, 0, 50,90, -25, 0)
         self.camLens.setFov(80)
 
         
