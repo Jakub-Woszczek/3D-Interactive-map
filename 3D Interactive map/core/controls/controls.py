@@ -119,7 +119,7 @@ class Controls:
             mouseChangeX = mouseX - self.lastMouseX
             mouseChangeY = mouseY - self.lastMouseY
             
-            self.cameraSwingFactor = 30
+            self.cameraSwingFactor = 10
             
             currentH = self.app.camera.getH()
             currentP = self.app.camera.getP()

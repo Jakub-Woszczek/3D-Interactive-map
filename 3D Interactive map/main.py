@@ -16,9 +16,8 @@ class MyGame(ShowBase):
         self.game_controls = Controls(self)
         self.game_controls.setupControls(self)
         self.setupCamera()
-        # captureMouse(self)
-        # setupControls(self)
-        gridGenerator.generateGrid(self)
+        gridGenerator.generateMeshFromCSV(self,filename="C:\\Kubiszon\\Studia\\Sem4\\python\\iterbr\\mapa_terenu")
+        # gridGenerator.generateMeshFromCSV(self,filename="poceduralLandmassGenerator\\mapa.csv")
         
         taskMgr.add(self.game_controls.update, 'update')
     
