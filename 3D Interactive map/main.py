@@ -1,37 +1,26 @@
-from math import pi, sin, cos
 from direct.showbase.ShowBase import ShowBase
-from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import WindowProperties
-
-from core.controls import controls, camera
-# from core.controls.camera import setupCamera, captureMouse
 from core.controls.controls import Controls
-from core.controls.keyboardControl import setupControls
 from poceduralLandmassGenerator import gridGenerator
+import argparse
 
 class MyGame(ShowBase):
-    def __init__(self):
+    def __init__(self,args):
         ShowBase.__init__(self)
+        self.args = args
         self.game_controls = Controls(self)
         self.game_controls.setupControls(self)
-        self.setupCamera()
-        gridGenerator.generateMeshFromCSV(self,filename="C:\\Kubiszon\\Studia\\Sem4\\python\\iterbr\\mapa_terenu")
-        # gridGenerator.generateMeshFromCSV(self,filename="poceduralLandmassGenerator\\mapa.csv")
+        self.game_controls.setupCamera(self)
+        gridGenerator.generateMeshFromCSV(self)
         
         taskMgr.add(self.game_controls.update, 'update')
-    
-    def setupCamera(self):
-        properties = WindowProperties()
-        properties.setCursorHidden(True)
-        properties.setMouseMode(WindowProperties.M_relative)
-        properties.setSize(960, 540)
-        self.win.requestProperties(properties)
 
-        self.disableMouse()
-        self.camera.setPosHpr(130, 0, 50,90, -25, 0)
-        self.camLens.setFov(80)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scale",type=int,default=1, help="Sampling step for height values.")
+    parser.add_argument("-pos", help="Current position display.",action="store_true")
+    args = parser.parse_args()
 
-        
-game = MyGame()
-game.run()
+    game = MyGame(args)
+    game.run()

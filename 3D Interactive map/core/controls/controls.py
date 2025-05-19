@@ -3,9 +3,7 @@ from direct.gui.OnscreenText import OnscreenText
 from direct.showbase.ShowBaseGlobal import globalClock
 from panda3d.core import WindowProperties, TextNode
 
-from core.controls import camera,directions,keyMap
-# from core.controls.camera import captureMouse
-from core.controls.directions import Direction
+from core.controls import directions,keyMap
 from core.controls.keyMap import Keys
 
 
@@ -28,7 +26,7 @@ class Controls:
         }
         self.posText = OnscreenText(
             text="",
-            pos=(-1.3, 0.9),  # Lewy górny róg (x, y)
+            pos=(-1.3, 0.9),
             scale=0.05,
             fg=(1, 1, 1, 1),
             align=TextNode.ALeft,
@@ -63,17 +61,35 @@ class Controls:
         app.accept(Keys.SPACE_UP.value, self.updateKeyMap, ['up', False])
         app.accept(Keys.LSHIFT.value, self.updateKeyMap, ['down', True])
         app.accept(Keys.LSHIFT_UP.value, self.updateKeyMap, ['down', False])
-        
+    
+    # Initial camera setup
+    def setupCamera(self,app):
+        # Use here captureMouse(self)
+        properties = WindowProperties()
+        properties.setCursorHidden(True)
+        properties.setMouseMode(WindowProperties.M_confined)
+        properties.setSize(960, 540)
+        app.win.requestProperties(properties)
+
+        app.disableMouse()
+        app.camera.setPosHpr(130, 0, 50,90, -25, 0)
+        app.camLens.setFov(80)
+    
+    
     def captureMouse(self):
         self.cameraSwingActivated = True
+        
+        centerX = self.app.win.getXSize() // 2
+        centerY = self.app.win.getYSize() // 2
 
         md = self.app.win.getPointer(0)
         self.lastMouseX = md.getX()
         self.lastMouseY = md.getY()
         
         properties = WindowProperties()
-        # properties.setCursorHidden(True)
+        properties.setCursorHidden(True)
         properties.setMouseMode(WindowProperties.M_confined)
+        self.app.win.movePointer(0,centerX,centerY)
         self.app.win.requestProperties(properties)
         
     
@@ -90,39 +106,41 @@ class Controls:
     
     def update(self, task):
         # Heads-up display
-        pos = self.app.camera.getPos()
-        hpr = self.app.camera.getHpr()
-        self.posText.setText(f"X: {pos.x:.1f} Y: {pos.y:.1f} Z: {pos.z:.1f} | H: {hpr.x:.1f} P: {hpr.y:.1f}")
+        if self.app.args.pos:
+            pos = self.app.camera.getPos()
+            hpr = self.app.camera.getHpr()
+            self.posText.setText(f"X: {pos.x:.1f} Y: {pos.y:.1f} Z: {pos.z:.1f} | H: {hpr.x:.1f} P: {hpr.y:.1f}")
         
         dt = globalClock.getDt()
         
         playerMoveSpeed = 10
         
-        x_movement = 0
-        y_movement = 0
-        z_movement = 0
-        
+        xMovement = 0
+        yMovement = 0
+        zMovement = 0
+
         if self.activeKeys['forward']:
-            x_movement -= dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
-            y_movement += dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
+            xMovement -= dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
+            yMovement += dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
         if self.activeKeys['backward']:
-            x_movement += dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
-            y_movement -= dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
+            xMovement += dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
+            yMovement -= dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
         if self.activeKeys['left']:
-            x_movement -= dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
-            y_movement -= dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
+            xMovement -= dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
+            yMovement -= dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
         if self.activeKeys['right']:
-            x_movement += dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
-            y_movement += dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
+            xMovement += dt * playerMoveSpeed * cos(degToRad(self.app.camera.getH()))
+            yMovement += dt * playerMoveSpeed * sin(degToRad(self.app.camera.getH()))
         if self.activeKeys['up']:
-            z_movement += dt * playerMoveSpeed
+            zMovement += dt * playerMoveSpeed
         if self.activeKeys['down']:
-            z_movement -= dt * playerMoveSpeed
+            zMovement -= dt * playerMoveSpeed
+
 
         self.app.camera.setPos(
-            self.app.camera.getX() + x_movement,
-            self.app.camera.getY() + y_movement,
-            self.app.camera.getZ() + z_movement,
+            self.app.camera.getX() + xMovement,
+            self.app.camera.getY() + yMovement,
+            self.app.camera.getZ() + zMovement,
         )
         
         if self.cameraSwingActivated:
@@ -135,22 +153,20 @@ class Controls:
             
             self.cameraSwingFactor = 10
             
-            currentH = self.app.camera.getH()
-            currentP = self.app.camera.getP()
+            currH = self.app.camera.getH()
+            currP = self.app.camera.getP()
             if mouseChangeX != 0 and mouseChangeY != 0:
                 self.app.camera.setHpr(
-                    (currentH - mouseChangeX * dt * self.cameraSwingFactor,
-                    min(90, max(-90, currentP - mouseChangeY * dt * self.cameraSwingFactor)),
-                    0
-                ))
+                    (currH - mouseChangeX * dt * self.cameraSwingFactor,
+                     min(90, max(-90, currP - mouseChangeY * dt * self.cameraSwingFactor)),
+                     0
+                     ))
                 self.lastMouseX = mouseX
                 self.lastMouseY = mouseY
             
-            # self.app.win.movePointer(0, self.app.win.getXSize() // 2, self.app.win.getYSize() // 2)
-                x = self.app.win.getXSize() // 2  # Środek okna w poziomie
-                y = self.app.win.getYSize() // 2  # Środek okna w pionie
+                x = self.app.win.getXSize() // 2
+                y = self.app.win.getYSize() // 2
                 
-                # self.app.win.movePointer(0, x, y)  # Przenosi kursor na (x, y)
                 if self.app.win.movePointer(0, x, y):
                     self.lastMouseX = x
                     self.lastMouseY = y
