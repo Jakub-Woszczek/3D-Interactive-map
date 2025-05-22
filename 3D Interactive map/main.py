@@ -1,26 +1,24 @@
-from direct.showbase.ShowBase import ShowBase
-from direct.task.TaskManagerGlobal import taskMgr
-from panda3d.core import WindowProperties
-from core.controls.controls import Controls
-from poceduralLandmassGenerator import gridGenerator
+from multiprocessing import Process, Queue
+from menu.menu import runMenu
+from mapProcess import run_map
 import argparse
-
-class MyGame(ShowBase):
-    def __init__(self,args):
-        ShowBase.__init__(self)
-        self.args = args
-        self.game_controls = Controls(self)
-        self.game_controls.setupControls(self)
-        self.game_controls.setupCamera(self)
-        gridGenerator.generateMeshFromCSV(self)
-        
-        taskMgr.add(self.game_controls.update, 'update')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--scale",type=int,default=1, help="Sampling step for height values.")
-    parser.add_argument("-pos", help="Current position display.",action="store_true")
+    parser.add_argument("--menu",action="store_true", help="Activate only menu")
     args = parser.parse_args()
-
-    game = MyGame(args)
-    game.run()
+    
+    config_queue = Queue()
+    
+    if args.menu:
+        runMenu(config_queue)
+    else:
+    
+        menu_proc = Process(target=runMenu, args=(config_queue,))
+        map_proc = Process(target=run_map, args=(config_queue,))
+    
+        menu_proc.start()
+        map_proc.start()
+    
+        menu_proc.join()
+        map_proc.join()

@@ -35,7 +35,6 @@ class Controls:
         
 
     def setupControls(self,app):
-        print("ustawiam klawisze")
         app.keyMap = {
             "forward": False,
             "backward": False,
@@ -106,10 +105,10 @@ class Controls:
     
     def update(self, task):
         # Heads-up display
-        if self.app.args.pos:
-            pos = self.app.camera.getPos()
-            hpr = self.app.camera.getHpr()
-            self.posText.setText(f"X: {pos.x:.1f} Y: {pos.y:.1f} Z: {pos.z:.1f} | H: {hpr.x:.1f} P: {hpr.y:.1f}")
+        # if self.app.args.pos:
+        pos = self.app.camera.getPos()
+        hpr = self.app.camera.getHpr()
+        self.posText.setText(f"X: {pos.x:.1f} Y: {pos.y:.1f} Z: {pos.z:.1f} | H: {hpr.x:.1f} P: {hpr.y:.1f}")
         
         dt = globalClock.getDt()
         

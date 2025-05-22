@@ -13,8 +13,8 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
 
     rows, cols = heights.shape
 
-    z_min = heights.min()
-    z_max = heights.max()
+    Zmin = heights.min()
+    Zmax = heights.max()
 
     
     format = GeomVertexFormat.getV3cp()
@@ -23,7 +23,7 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
     color = GeomVertexWriter(vdata, "color")
 
     triangles = GeomTriangles(Geom.UHStatic)
-    vertex_index = 0
+    vertexIdx = 0
 
     for row in range(0, rows - 1):
         for col in range(0, cols - 1):
@@ -37,21 +37,21 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
             p2 = (distro[col], distro[row + 1], z2)
             p3 = (distro[col + 1], distro[row + 1], z3)
             
-            avg_z1 = (z0 + z1 + z2) / 3
-            flat_color1 = heightToColor(avg_z1, z_min, z_max)
+            avgZ1 = (z0 + z1 + z2) / 3
+            flatColor1 = heightToColor(avgZ1, Zmin, Zmax)
             for pos in [p0, p1, p2]:
                 vertex.addData3f(*pos)
-                color.addData4f(*flat_color1)
-            triangles.addVertices(vertex_index, vertex_index + 1, vertex_index + 2)
-            vertex_index += 3
+                color.addData4f(*flatColor1)
+            triangles.addVertices(vertexIdx, vertexIdx + 1, vertexIdx + 2)
+            vertexIdx += 3
 
             avg_z2 = (z2 + z1 + z3) / 3
-            flat_color2 = heightToColor(avg_z2, z_min, z_max)
+            flat_color2 = heightToColor(avg_z2, Zmin, Zmax)
             for pos in [p2, p1, p3]:
                 vertex.addData3f(*pos)
                 color.addData4f(*flat_color2)
-            triangles.addVertices(vertex_index, vertex_index + 1, vertex_index + 2)
-            vertex_index += 3
+            triangles.addVertices(vertexIdx, vertexIdx + 1, vertexIdx + 2)
+            vertexIdx += 3
 
     geom = Geom(vdata)
     geom.addPrimitive(triangles)
@@ -63,8 +63,8 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
     nodePath.setTwoSided(True)
     nodePath.setTransparency(True)
 
-def heightToColor(z, z_min, z_max):
-    norm_z = (z - z_min) / (z_max - z_min) if z_max > z_min else 0
+def heightToColor(z, Zmin, Zmax):
+    normZ = (z - Zmin) / (Zmax - Zmin) if Zmax > Zmin else 0
     """
     zielony: (0, 1, 0)
     żółty: (1, 1, 0)
@@ -72,16 +72,16 @@ def heightToColor(z, z_min, z_max):
     czerwony: (1, 0, 0)
     """
 
-    if norm_z < 0.33:
-        t = norm_z / 0.33
+    if normZ < 0.33:
+        t = normZ / 0.33
         r = t
         g = 1
-    elif norm_z < 0.66:
-        t = (norm_z - 0.33) / 0.33
+    elif normZ < 0.66:
+        t = (normZ - 0.33) / 0.33
         r = 1
         g = 1 - 0.5 * t
     else:
-        t = (norm_z - 0.66) / 0.34
+        t = (normZ - 0.66) / 0.34
         r = 1
         g = 0.5 * (1 - t)
 
