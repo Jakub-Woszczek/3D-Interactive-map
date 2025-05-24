@@ -79,7 +79,7 @@ def runMenu(configQ):
         
         menu.makeListboxBind(entry, listbox)
         
-        startBtt = tk.Button(root, text="Add", command=menu.routeHandlingFunctions[idx])
+        startBtt = tk.Button(root, text="Add", command=lambda i=idx: menu.addTop(i,i))
         gridPlace(startBtt, i + 3, 5, colspan=2)
     
     # Chart
