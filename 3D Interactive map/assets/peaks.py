@@ -1,4 +1,4 @@
-peaks = [
+peaksData = [
     ("Eagle Crest", (917, 423)),
     ("Shadow Peak", (473, 507)),
     ("Silver Ridge", (1293, 714)),

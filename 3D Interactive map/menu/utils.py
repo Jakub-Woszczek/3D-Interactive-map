@@ -1,6 +1,6 @@
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from assets.peaks import peaks
+from assets.peaks import peaksData
 from assets.routesTimeing import routeTime
 from tkinter import END
 from tkinter import messagebox
@@ -16,7 +16,7 @@ DEFAULT_ROWSPAN = 1
 
 class Menu:
     def __init__(self,root):
-        self.tops = peaks
+        self.tops = peaksData
         self.start = None # Stores ID of top
         self.end = None # Stores ID of top
         self.hikingStops = [] # Stores IDs of tops
@@ -196,8 +196,8 @@ class Menu:
         self.travelTimeLabel.config(text=time_text)
     
     def generateRandomTopName(self):
-        nameID = randint(0,len(peaks)-1)
-        return peaks[nameID][0]
+        nameID = randint(0, len(peaksData) - 1)
+        return peaksData[nameID][0]
     
     def updateRouteGraphLabel(self):
         fullRoute = [self.start] + self.hikingStops + [self.end]

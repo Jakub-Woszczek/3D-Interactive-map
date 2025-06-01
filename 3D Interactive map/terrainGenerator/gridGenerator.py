@@ -1,9 +1,9 @@
 import numpy as np
-from panda3d.core import GeomVertexFormat, GeomVertexData, GeomVertexWriter
+from panda3d.core import GeomVertexFormat, GeomVertexData, GeomVertexWriter, LineSegs, TextNode
 from panda3d.core import GeomTriangles, Geom, GeomNode
+from assets.peaks import peaksData
 
-
-def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_file="assets/mapa_terenu"):
+def generateMeshFromCSV(app, y_file="assets/y.csv", z_file="assets/mapa_terenu"):
     try:
         distro = np.loadtxt(y_file, delimiter=",")
         heights = np.loadtxt(z_file, delimiter=",")
@@ -13,8 +13,9 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
 
     rows, cols = heights.shape
 
-    Zmin = heights.min()
-    Zmax = heights.max()
+    increaseHeight = 4
+    Zmin = heights.min()*increaseHeight
+    Zmax = heights.max()*increaseHeight
 
     
     format = GeomVertexFormat.getV3cp()
@@ -27,10 +28,10 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
 
     for row in range(0, rows - 1):
         for col in range(0, cols - 1):
-            z0 = heights[row, col]
-            z1 = heights[row, col + 1]
-            z2 = heights[row + 1, col]
-            z3 = heights[row + 1, col + 1]
+            z0 = heights[row, col]*increaseHeight
+            z1 = heights[row, col + 1]*increaseHeight
+            z2 = heights[row + 1, col]*increaseHeight
+            z3 = heights[row + 1, col + 1]*increaseHeight
 
             p0 = (distro[col], distro[row], z0)
             p1 = (distro[col + 1], distro[row], z1)
@@ -63,6 +64,42 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
     nodePath = app.render.attachNewNode(node)
     nodePath.setTwoSided(True)
     nodePath.setTransparency(True)
+    
+    # Generate tops Names
+    bilboardDiff = 1*increaseHeight
+    for topName, (row, col) in peaksData:
+        x = distro[col]
+        y = distro[row]
+        z = heights[row, col]*increaseHeight
+        
+        # Sphere
+        sphere = app.loader.loadModel("models/misc/sphere")
+        sphere.setScale(0.3)
+        sphere.setPos(x, y, z)
+        sphere.setColor(1, 1, 1, 1)
+        sphere.reparentTo(app.render)
+        
+        # Vertical line
+        lineSegs = LineSegs()
+        lineSegs.setThickness(4.0)
+        lineSegs.setColor(1, 1, 1, 1)
+        lineSegs.moveTo(x, y, z)
+        lineSegs.drawTo(x, y, z + bilboardDiff)
+        app.render.attachNewNode(lineSegs.create())
+        
+        # Billboard
+        text = TextNode(topName)
+        text.setText(topName)
+        text.setTextColor(1, 1, 1, 1)
+        text.setShadow(0.05, 0.05)
+        text.setShadowColor(0, 0, 0, 1)
+        text.setCardColor(0, 0, 0, 0.2)
+        text.setAlign(TextNode.ACenter)
+        
+        textNodePath = app.render.attachNewNode(text)
+        textNodePath.setScale(2)
+        textNodePath.setPos(x, y, z + bilboardDiff)
+        textNodePath.setBillboardPointEye()
 
 def heightToColor(z, Zmin, Zmax):
     normZ = (z - Zmin) / (Zmax - Zmin) if Zmax > Zmin else 0

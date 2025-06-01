@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 
-from assets.peaks import peaks
+from assets.peaks import peaksData
 from assets.topsEdgesGraph import edges
 from assets.routesTimeing import routeTime
 
@@ -28,7 +28,7 @@ class Graph:
         self.importMapHeights()
         
     def importTopsCoords(self):
-        self.topsCoords = [(row, col) for _, (row, col) in peaks]
+        self.topsCoords = [(row, col) for _, (row, col) in peaksData]
     
     def createAadjacencyGraph(self):
         """
