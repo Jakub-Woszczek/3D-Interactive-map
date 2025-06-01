@@ -73,7 +73,7 @@ def runMenu(configQ):
     gridPlace(labelStop, 32, 4)
     
     for idx,i in enumerate([20,26,32]):
-        entry = tk.Entry(root)
+        entry = PlaceholderEntry(root,placeholder="np: " + menu.generateRandomTopName())
         gridPlace(entry, i, 5, colspan=3)
         menu.routeHandling.append(entry)
         

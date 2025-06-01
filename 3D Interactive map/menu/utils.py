@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.colors as mcolors
 from matplotlib.patches import Polygon
 from menu.graph import Graph
+import tkinter as tk
+from random import randint
 
 DEFAULT_COLSPAN = 4
 DEFAULT_ROWSPAN = 1
@@ -179,6 +181,10 @@ class Menu:
         
         time_text = "0 h" if len(fullRouteCleaned) < 2 else f"{self.graph.getTravelTime(fullRouteCleaned)} h"
         self.travelTimeLabel.config(text=time_text)
+    
+    def generateRandomTopName(self):
+        nameID = randint(0,len(peaks))
+        return peaks[nameID][0]
 
 
 def gridPlace(widget, col, row, colspan=DEFAULT_COLSPAN, rowspan=DEFAULT_ROWSPAN):
@@ -308,3 +314,29 @@ def drawElevationChart(x_vals, y_vals, pionowe_linie=None, ax=None):
     ax.spines['bottom'].set_linewidth(2)
     ax.spines['bottom'].set_alpha(0.2)
     ax.tick_params(axis='both', which='both', length=0)
+
+
+class PlaceholderEntry(tk.Entry):
+    def __init__(self, master=None, placeholder="placeholder", color='grey', *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+        self.placeholder = placeholder
+        self.placeholder_color = color
+        self.default_fg_color = self['fg']  # Domyślny kolor tekstu
+
+        self.bind("<FocusIn>", self._on_focus_in)
+        self.bind("<FocusOut>", self._on_focus_out)
+
+        self._put_placeholder()
+
+    def _put_placeholder(self):
+        self.insert(0, self.placeholder)
+        self.config(fg=self.placeholder_color)
+
+    def _on_focus_in(self, event):
+        if self.get() == self.placeholder:
+            self.delete(0, tk.END)
+            self.config(fg=self.default_fg_color)
+
+    def _on_focus_out(self, event):
+        if not self.get():
+            self._put_placeholder()
