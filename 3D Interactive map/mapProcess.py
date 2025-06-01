@@ -5,17 +5,17 @@ from terrainGenerator import gridGenerator
 
 
 class MyGame(ShowBase):
-    def __init__(self, config):
+    def __init__(self, queue):
         ShowBase.__init__(self)
-        self.config = config
+        self.queue = queue
         self.game_controls = Controls(self)
         self.game_controls.setupControls(self)
         self.game_controls.setupCamera(self)
         gridGenerator.generateMeshFromCSV(self)
-        
+        queue.put("completed")
         taskMgr.add(self.game_controls.update, 'update')
         
-def run_map(config_queue):
+def runMap(q):
     # config = config_queue.get()
-    game = MyGame(config_queue)
+    game = MyGame(q)
     game.run()

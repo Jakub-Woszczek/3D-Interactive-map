@@ -35,6 +35,8 @@ class Menu:
         self.graph = Graph()
         self.travelTimeLabel = None
         self.routeGraphLabel = None
+        self.progressBar = None
+        self.startButton = None
         
         self.importTopsNames()
         self.importRoutes()
@@ -251,6 +253,18 @@ class Menu:
                             command=lambda i=idx: delete_selected_stop(i))
             btn.place(x=marginWidth + idx * (buttonWidth + marginWidth), y=marginHeight)
         
+    def listenToMapProgress(self,q):
+        while True:
+            try:
+                percentLoaded = q.get(timeout=1)
+                if percentLoaded == "completed":
+                    self.progressBar['value'] = 100
+                    self.startButton.config(state="normal",text="Mapa 3D")
+                    return
+                
+                self.progressBar['value'] = percentLoaded/10
+            except:
+                pass
 
 
 def gridPlace(widget, col, row, colspan=DEFAULT_COLSPAN, rowspan=DEFAULT_ROWSPAN):

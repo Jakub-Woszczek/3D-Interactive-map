@@ -52,6 +52,7 @@ def generateMeshFromCSV(app, x_file="assets/x.csv", y_file="assets/y.csv", z_fil
                 color.addData4f(*flat_color2)
             triangles.addVertices(vertexIdx, vertexIdx + 1, vertexIdx + 2)
             vertexIdx += 3
+        app.queue.put(int(row/rows*1000))
 
     geom = Geom(vdata)
     geom.addPrimitive(triangles)

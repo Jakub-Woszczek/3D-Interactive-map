@@ -1,11 +1,8 @@
-import tkinter as tk
+import threading
 from tkinter import ttk
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from menu.utils import *
 from menu.utils import Menu
 from PIL import Image, ImageTk
-import numpy as np
 
 
 def runMenu(configQ):
@@ -25,6 +22,9 @@ def runMenu(configQ):
     menu = Menu(root)
     colPixelUnit = 1920/40
     rowPixelUnit = 1080/20
+    
+    mapLoaderListener = threading.Thread(target=menu.listenToMapProgress, args=(configQ,),daemon=True)
+    mapLoaderListener.start()
     
     # Canvas map
     canvaSize = 600
@@ -101,11 +101,14 @@ def runMenu(configQ):
     menu.travelTimeLabel.pack(pady=10)
     
     # Progressbar
-    progress = ttk.Progressbar(root, orient="horizontal", mode="determinate")
-    gridPlace(progress, 22, 17, colspan=8)
+    menu.progressBar = ttk.Progressbar(root, orient="horizontal", mode="determinate")
+    gridPlace(menu.progressBar, 22, 17, colspan=8)
+    
+    labelRoute = tk.Label(root, text="Ładowanie mapy 3D")
+    gridPlace(labelRoute, 30, 17,colspan=3)
     
     # Button
-    startBtt = tk.Button(root, text="Start", command=sendConfig)
-    gridPlace(startBtt, 34, 17)
+    menu.startButton = tk.Button(root, text="Mapa 3D\n(trwa ładowanie)", command=sendConfig,state="disabled")
+    gridPlace(menu.startButton, 34, 17)
     
     root.mainloop()

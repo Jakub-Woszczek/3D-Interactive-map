@@ -1,6 +1,6 @@
 from multiprocessing import Process, Queue
 from menu.menu import runMenu
-from mapProcess import run_map
+from mapProcess import runMap
 import argparse
 
 if __name__ == "__main__":
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     else:
     
         menu_proc = Process(target=runMenu, args=(config_queue,))
-        map_proc = Process(target=run_map, args=(config_queue,))
+        map_proc = Process(target=runMap, args=(config_queue,))
     
         menu_proc.start()
         map_proc.start()
