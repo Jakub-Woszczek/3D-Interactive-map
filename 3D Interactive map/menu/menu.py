@@ -5,11 +5,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from menu.utils import *
 from menu.utils import Menu
 from PIL import Image, ImageTk
+import numpy as np
 
 
 def runMenu(configQ):
     
     def sendConfig():
+        print("Start clicked")  # ← Debug
         config = {
             "scale": 1,
             "pos": 1
@@ -21,13 +23,14 @@ def runMenu(configQ):
     root = tk.Tk()
     root.attributes("-fullscreen", True)
     menu = Menu(root)
-
+    colPixelUnit = 1920/40
+    rowPixelUnit = 1080/20
     
     # Canvas map
     canvaSize = 600
     imgPath = 'assets/test_napis5.png'
-    X = 1920/40
-    Y = 1080/20*2
+    X = colPixelUnit
+    Y = rowPixelUnit*2
     
     canvas = tk.Canvas(root, width=canvaSize, height=canvaSize, bg='white')
     canvas.place(x=X, y=Y)
@@ -86,14 +89,6 @@ def runMenu(configQ):
     labelChart = tk.Label(root, text="Profil wysokościowy")
     gridPlace(labelChart, 20, 7, colspan=8)
     
-    fig = Figure(figsize=(5, 4), dpi=100)
-    plot = fig.add_subplot(111)
-    plot.plot([1, 2, 3], [1, 4, 9])
-    
-    canvas = FigureCanvasTkAgg(fig, master=root)
-    canvas.get_tk_widget().place_forget()
-    gridPlace(canvas.get_tk_widget(), 20, 8, colspan=18, rowspan=6)
-    
     # Route time length
     timeLabel = tk.Label(root, text="Przewidywany czas podróży")
     gridPlace(timeLabel, 20, 15, colspan=8)
@@ -101,6 +96,9 @@ def runMenu(configQ):
     frame = tk.Frame(root, bg="lightgreen")
     gridPlace(frame, 28, 15, colspan=2)
     boxFrames.append(frame)
+    
+    menu.travelTimeLabel = tk.Label(frame, text="0",background="lightgreen")
+    menu.travelTimeLabel.pack(pady=10)
     
     # Progressbar
     progress = ttk.Progressbar(root, orient="horizontal", mode="determinate")

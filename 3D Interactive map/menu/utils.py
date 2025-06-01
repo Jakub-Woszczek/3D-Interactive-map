@@ -1,8 +1,13 @@
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 from assets.peaks import peaks
-from assets.topsEdgesGraph import edges
 from assets.routesTimeing import routeTime
 from tkinter import END
 from tkinter import messagebox
+import numpy as np
+import matplotlib.colors as mcolors
+from matplotlib.patches import Polygon
+from menu.graph import Graph
 
 DEFAULT_COLSPAN = 4
 DEFAULT_ROWSPAN = 1
@@ -20,14 +25,19 @@ class Menu:
         self.routes = []
         self.currListbox = []
         self.routesCanvaIDs = []
-        self.importTopsNames()
-        self.importRoutes()
-        self.adjGraph = self.createAadjacencyGraph()
         self.edgeWeights = routeTime
         self.topsAmnt = 0
+        self.colPixelUnit = 1920 / 40
+        self.rowPixelUnit = 1080 / 20
+        self.chartCanvas = None
+        self.graph = Graph()
+        self.travelTimeLabel = None
+        
+        self.importTopsNames()
+        self.importRoutes()
     
     def importTopsNames(self):
-        for i ,(name,(x,y)) in enumerate(self.tops):
+        for name,(x,y) in self.tops:
             self.topsNames.append(name)
     
     def importRoutes(self):
@@ -43,26 +53,6 @@ class Menu:
                         route.append((x, y))
                 self.routes.append(route)
     
-    def createAadjacencyGraph(self):
-        """
-        Creates graph where
-        G[topIdx] = [(neighbourTopIdx,edgeIdx),...]
-        and counts tops
-        :return:
-        """
-        self.topsAmnt = 0
-        for top1,top2 in edges:
-            self.topsAmnt = max(self.topsAmnt,top1,top2)
-        
-        adjGraph = [[] for _ in range(self.topsAmnt+1)]
-        for edgeIdx,(top1, top2) in enumerate(edges):
-            adjGraph[top1].append((top2, edgeIdx))
-            adjGraph[top2].append((top1, edgeIdx))
-        
-        self.topsAmnt += 1
-        return adjGraph
-        
-    
     # Start-End ADD handling functions
     def addTop(self, entryIdx,topType):
         name = self.routeHandling[entryIdx].get()
@@ -71,14 +61,14 @@ class Menu:
         
         topID = self.topsNames.index(name)
         try:
-            self.isValidNewTop(topID,topType)
+            fullRoute = self.isValidNewTop(topID,topType)
             if topType == 0:
                 self.start = topID
             elif topType == 1:
                 self.end = topID
             elif topType == 2:
                 self.hikingStops.append(topID)
-            self.updateMapPahtVis()
+            if len(fullRoute) > 1 : self.updateMenu()
         except ValueError as e:
             messagebox.showerror("Input error: ", str(e))
     
@@ -106,12 +96,12 @@ class Menu:
         fullRouteCleaned = [top for top in fullRoute if top is not None]
         
         if len(fullRouteCleaned) < 2:
-            return True
+            return fullRouteCleaned
         
         for i in range(len(fullRouteCleaned)-1):
             if fullRouteCleaned[i] == fullRouteCleaned[i+1]:
                 raise ValueError("Sąsiednie punkty na trasie nie mogą być takie same.")
-        return True
+        return fullRouteCleaned
     
     def eraseRoutesFromCanvas(self):
         for line_id in self.routesCanvaIDs:
@@ -122,46 +112,6 @@ class Menu:
         listbox.bind("<<ListboxSelect>>", lambda e: selectFromListbox(listbox, entry))
         entry.bind("<KeyRelease>", lambda e: updateListbox(entry, listbox, self.topsNames))
     
-    def findShortestPath(self, top1Idx, top2Idx):
-        """
-        Returns list of edge indices for shortest path from top1Idx to top2Idx
-        using Dijkstra's algorithm.
-        """
-        import heapq
-        dist = [float("inf")] * len(self.adjGraph)
-        prev = [None] * len(self.adjGraph)
-        prevEdge = [None] * len(self.adjGraph)
-        
-        dist[top1Idx] = 0
-        heap = [(0, top1Idx)]
-        
-        while heap:
-            currDist, u = heapq.heappop(heap)
-            if currDist > dist[u]:
-                continue
-            if u == top2Idx:
-                break
-            
-            for v, edgeIdx in self.adjGraph[u]:
-                weight = self.edgeWeights[edgeIdx]
-                if dist[v] > dist[u] + weight:
-                    dist[v] = dist[u] + weight
-                    prev[v] = u
-                    prevEdge[v] = edgeIdx
-                    heapq.heappush(heap, (dist[v], v))
-        
-        path = []
-        curr = top2Idx
-        while prev[curr] is not None:
-            path.append(prevEdge[curr])
-            curr = prev[curr]
-        
-        if curr != top1Idx:
-            return []
-        
-        path.reverse()
-        return path
-    
     def updateMapPahtVis(self):
         """
         Creates list of paths (path - list of edgesID) between chosen points and draws it on canvas.
@@ -170,18 +120,18 @@ class Menu:
             - stop + end
             - start + stops + end
             ... ect.
+        :return flattened list of edge indexes
         """
         
         self.eraseRoutesFromCanvas()
         
         routePoints = [self.start] + self.hikingStops + [self.end]
         routePoints = [p for p in routePoints if p is not None]
-        print(routePoints)
         if len(routePoints) < 2:
-            return
+            return ([],[],[])
         
         allPaths = [
-            self.findShortestPath(a, b)
+            self.graph.findShortestPath(a, b)
             for a, b in zip(routePoints, routePoints[1:])
         ]
         
@@ -190,6 +140,47 @@ class Menu:
                 ids = drawRoute(self.mapCanvas,self.routes[edgeIdx])
                 self.routesCanvaIDs += ids
                 
+        return routePoints
+    
+    def updateChart(self,x, y, znaczniki):
+        dpi = 100
+        width = self.colPixelUnit * 17 / dpi
+        height = self.rowPixelUnit * 3 / dpi
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        plot = fig.add_subplot(111)
+        
+        drawElevationChart(x, y, pionowe_linie=znaczniki, ax=plot)
+        
+        # Del prev route from canvas
+        if self.chartCanvas is not None:
+            self.chartCanvas.get_tk_widget().destroy()
+            
+        self.chartCanvas = FigureCanvasTkAgg(fig, master=self.tkRoot)
+        widget = self.chartCanvas.get_tk_widget()
+        
+        gridPlace(widget, 20, 8, colspan=18, rowspan=6)
+        
+        self.chartCanvas.draw()
+    
+    def updateMenu(self):
+        topsIds = self.updateMapPahtVis()
+
+        yVals,checkpoints = self.graph.getElevationProfile(topsIds)
+        xVals = np.arange(len(yVals))
+        
+        marks = {checkpt: self.topsNames[topsIds[i]] for i, checkpt in enumerate(checkpoints)}
+        
+        self.updateChart(xVals,yVals, marks)
+        self.updateTime()
+    
+    def updateTime(self):
+        fullRoute = [self.start] + self.hikingStops + [self.end]
+        fullRouteCleaned = [top for top in fullRoute if top is not None]
+        
+        time_text = "0 h" if len(fullRouteCleaned) < 2 else f"{self.graph.getTravelTime(fullRouteCleaned)} h"
+        self.travelTimeLabel.config(text=time_text)
+
+
 def gridPlace(widget, col, row, colspan=DEFAULT_COLSPAN, rowspan=DEFAULT_ROWSPAN):
     relx = col / 40
     rely = row / 20
@@ -245,3 +236,75 @@ def drawRoute(canvas,points,tag='route_line', orgImgSize=(2048,2048), newImgSize
     
     return ids
 
+
+def gradientFill(x, y, y_min, y_max, ax=None):
+    """
+    Rysuje wykres z linią oraz gradientowym wypełnieniem pod nią.
+    Parametry linii i gradientu są ustawiane osobno.
+    """
+    if ax is None:
+        raise ValueError("Musisz przekazać ax (AxesSubplot)")
+    
+    # Line settings
+    line, = ax.plot(x, y, color='grey', alpha=0.4, linewidth=1)
+    
+    zorder = line.get_zorder()
+    
+    z = np.empty((100, 1, 4), dtype=float)
+    rgb = mcolors.colorConverter.to_rgb('grey')
+    z[:, :, :3] = rgb
+    # Set gradient (starting from topAlpha to bottomAlpha)
+    topAlpha = 0.8
+    bottomAlpha = 0.1
+    z[:, :, -1] = np.linspace(bottomAlpha, topAlpha, 100)[:, None]
+    
+    xmin, xmax = x.min(), x.max()
+    ymin, ymax = y_min, y_max
+    im = ax.imshow(z, aspect='auto', extent=[xmin, xmax, ymin, ymax],
+                   origin='lower', zorder=zorder)
+    
+    xy = np.column_stack([x, y])
+    xy = np.vstack([[xmin, ymin], xy, [xmax, ymin], [xmin, ymin]])
+    clip_path = Polygon(xy, facecolor='none', edgecolor='none', closed=True)
+    ax.add_patch(clip_path)
+    im.set_clip_path(clip_path)
+    
+    ax.autoscale(True)
+    return line, im
+
+def drawElevationChart(x_vals, y_vals, pionowe_linie=None, ax=None):
+    """
+    Plots elevation profile with marked route points
+    """
+    if ax is None:
+        raise ValueError("Musisz przekazać ax (AxesSubplot)")
+        
+    y_min, y_max = 4.1741213941640275e-05, 4.634259615214229
+    gradientFill(x_vals, y_vals, y_min, y_max, ax=ax)
+    
+    if pionowe_linie:
+        for xv, label in pionowe_linie.items():
+            y_bottom = y_min
+            y_top = np.interp(xv, x_vals, y_vals)
+            
+            ax.vlines(x=xv, ymin=y_bottom, ymax=y_top, color='gray', linewidth=0.7, alpha=0.6)
+            
+            ax.plot(xv, y_top, marker='o', markersize=7,
+                    markerfacecolor='white', markeredgecolor='gray', markeredgewidth=1)
+            
+            ax.text(xv, y_top + 0.1, label, color='black', fontsize=9,
+                    ha='center', va='bottom')
+    
+    ax.grid(axis='y', alpha=0.3)
+    ax.grid(axis='x', visible=False)
+    
+    # ax.set_ylabel("Wysokość")
+    ax.set_ylim(y_min, y_max + 1)
+    
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.spines['bottom'].set_visible(True)
+    ax.spines['bottom'].set_color('grey')
+    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['bottom'].set_alpha(0.2)
+    ax.tick_params(axis='both', which='both', length=0)
