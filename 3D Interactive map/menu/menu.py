@@ -53,14 +53,11 @@ def runMenu(configQ):
     
     # Text "Trasa"
     labelRoute = tk.Label(root, text="Trasa")
-    gridPlace(labelRoute, 26, 1)
+    gridPlace(labelRoute, 20, 1,colspan=17)
     
     # Route graph boxes
-    boxFrames = []
-    for i in range(0, 9, 2):
-        frame = tk.Frame(root, bg="lightblue")
-        gridPlace(frame, 20 + i * 2, 2, colspan=2)
-        boxFrames.append(frame)
+    menu.routeGraphLabel = tk.Label(root, text="")
+    gridPlace(menu.routeGraphLabel, 20, 2,colspan=17)
     
     # Autocomplete Entry
     labelStart = tk.Label(root, text="Początek")
@@ -95,7 +92,6 @@ def runMenu(configQ):
     
     frame = tk.Frame(root, bg="lightgreen")
     gridPlace(frame, 28, 15, colspan=2)
-    boxFrames.append(frame)
     
     menu.travelTimeLabel = tk.Label(frame, text="0",background="lightgreen")
     menu.travelTimeLabel.pack(pady=10)

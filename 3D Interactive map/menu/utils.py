@@ -34,6 +34,7 @@ class Menu:
         self.chartCanvas = None
         self.graph = Graph()
         self.travelTimeLabel = None
+        self.routeGraphLabel = None
         
         self.importTopsNames()
         self.importRoutes()
@@ -71,6 +72,8 @@ class Menu:
             elif topType == 2:
                 self.hikingStops.append(topID)
             if len(fullRoute) > 1 : self.updateMenu()
+            self.updateRouteGraphLabel()
+        
         except ValueError as e:
             messagebox.showerror("Input error: ", str(e))
     
@@ -185,6 +188,20 @@ class Menu:
     def generateRandomTopName(self):
         nameID = randint(0,len(peaks))
         return peaks[nameID][0]
+    
+    def updateRouteGraphLabel(self):
+        fullRoute = [self.start] + self.hikingStops + [self.end]
+        fullRouteCleaned = [top for top in fullRoute if top is not None]
+        
+        if not fullRouteCleaned:
+            self.routeGraphLabel.config(text="(No route)")
+            return
+        
+        text = self.topsNames[fullRouteCleaned[0]]
+        for i in range(1,len(fullRouteCleaned)):
+            text += "  -->  " + self.topsNames[fullRouteCleaned[i]]
+        
+        self.routeGraphLabel.config(text=text)
 
 
 def gridPlace(widget, col, row, colspan=DEFAULT_COLSPAN, rowspan=DEFAULT_ROWSPAN):
