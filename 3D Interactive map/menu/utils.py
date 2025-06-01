@@ -210,6 +210,47 @@ class Menu:
             text += "  -->  " + self.topsNames[fullRouteCleaned[i]]
         
         self.routeGraphLabel.config(text=text)
+    
+    def deleteHikingStop(self):
+        if len(self.hikingStops) < 1:
+            messagebox.showerror("Logic error:", "Nie masz dodanych żadnych przystanków")
+            return
+        
+        # Sizes setup
+        hikingStopsAmount = len(self.hikingStops)
+        marginWidth = 30
+        buttonWidth = 100
+        baseWidth = marginWidth + hikingStopsAmount * (marginWidth + buttonWidth)
+        
+        marginHeight = 30
+        buttonHeight = 50
+        baseHeight = 2*marginHeight + buttonHeight
+        
+        
+        
+        popup = tk.Toplevel(self.tkRoot)
+        popup.title("Choose hiking stop to delete")
+        popup.transient(self.tkRoot)  # keep at surface
+        popup.grab_set()  # block menu interaction
+        
+        popup.update_idletasks()
+        x = self.tkRoot.winfo_screenwidth() // 2 - baseWidth // 2
+        y = self.tkRoot.winfo_screenheight() // 2 - baseHeight // 2
+        popup.geometry(f"{baseWidth}x{baseHeight}+{x}+{y}")
+        
+        def delete_selected_stop(index):
+            self.hikingStops.pop(index)
+            popup.destroy()
+            self.updateMenu()
+            self.updateRouteGraphLabel()
+        
+        # Create one button per stop
+        for idx, topID in enumerate(self.hikingStops):
+            name = self.topsNames[topID]
+            btn = tk.Button(popup, text=name, width=12, height=2,
+                            command=lambda i=idx: delete_selected_stop(i))
+            btn.place(x=marginWidth + idx * (buttonWidth + marginWidth), y=marginHeight)
+        
 
 
 def gridPlace(widget, col, row, colspan=DEFAULT_COLSPAN, rowspan=DEFAULT_ROWSPAN):

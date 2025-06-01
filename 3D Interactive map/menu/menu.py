@@ -53,7 +53,11 @@ def runMenu(configQ):
     
     # Text "Trasa"
     labelRoute = tk.Label(root, text="Trasa")
-    gridPlace(labelRoute, 20, 1,colspan=17)
+    gridPlace(labelRoute, 27, 1,colspan=3)
+    
+    # Delete hiking stop button
+    deleteHikingStopButton = tk.Button(root, text="Delete Hiking Stop", command=menu.deleteHikingStop)
+    gridPlace(deleteHikingStopButton, 33, 1,colspan=3,rowspan=1)
     
     # Route graph boxes
     menu.routeGraphLabel = tk.Label(root, text="")

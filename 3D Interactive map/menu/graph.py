@@ -106,7 +106,8 @@ class Graph:
         :param topsIdx: Array of indexes of tops from start to end
         :return: Array of elevation profile shortest path crosses
         """
-        
+        if len(topsIdx) < 2:
+            return [],[]
         def cumsum_list(arr):
             result = []
             total = 0
