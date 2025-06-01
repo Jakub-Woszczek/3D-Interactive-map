@@ -58,8 +58,13 @@ class Menu:
     
     # Start-End ADD handling functions
     def addTop(self, entryIdx,topType):
-        name = self.routeHandling[entryIdx].get()
+        entry = self.routeHandling[entryIdx]
+        name = entry.get().strip()
+        
+        entry.config(bg="white")
+        
         if name not in self.topsNames:
+            entry.config(bg="lightcoral")
             return
         
         topID = self.topsNames.index(name)
@@ -71,10 +76,13 @@ class Menu:
                 self.end = topID
             elif topType == 2:
                 self.hikingStops.append(topID)
+            
             if len(fullRoute) > 1 : self.updateMenu()
             self.updateRouteGraphLabel()
+            entry.config(bg="lightgreen")
         
         except ValueError as e:
+            entry.config(bg="lightcoral")
             messagebox.showerror("Input error: ", str(e))
     
     
@@ -186,7 +194,7 @@ class Menu:
         self.travelTimeLabel.config(text=time_text)
     
     def generateRandomTopName(self):
-        nameID = randint(0,len(peaks))
+        nameID = randint(0,len(peaks)-1)
         return peaks[nameID][0]
     
     def updateRouteGraphLabel(self):
