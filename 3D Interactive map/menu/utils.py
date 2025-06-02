@@ -37,6 +37,7 @@ class Menu:
         self.routeGraphLabel = None
         self.progressBar = None
         self.startButton = None
+        self.activeEdgedIds = None
         
         self.importTopsNames()
         self.importRoutes()
@@ -90,7 +91,7 @@ class Menu:
     
     def isValidNewTop(self,newTopID,topType):
         """
-        Checks if the new top is valid, with condition that no 2 neighbournig tops can be the same.
+        Checks if the new top is valid, with condition that no 2 neighbouring tops can be the same.
         Prevents from adding more that 3 hiking stops.
         :param newTopID:
         :param topType:
@@ -143,12 +144,13 @@ class Menu:
         routePoints = [self.start] + self.hikingStops + [self.end]
         routePoints = [p for p in routePoints if p is not None]
         if len(routePoints) < 2:
-            return ([],[],[])
+            return []
         
         allPaths = [
             self.graph.findShortestPath(a, b)
             for a, b in zip(routePoints, routePoints[1:])
         ]
+        self.activeEdgedIds = [edgeId for sublist in allPaths for edgeId in sublist]
         
         for path in allPaths:
             for edgeIdx in path:
@@ -157,14 +159,14 @@ class Menu:
                 
         return routePoints
     
-    def updateChart(self,x, y, znaczniki):
+    def updateChart(self,x, y, marks):
         dpi = 100
         width = self.colPixelUnit * 17 / dpi
         height = self.rowPixelUnit * 3 / dpi
         fig = Figure(figsize=(width, height), dpi=dpi)
         plot = fig.add_subplot(111)
         
-        drawElevationChart(x, y, pionowe_linie=znaczniki, ax=plot)
+        drawElevationChart(x, y, pionowe_linie=marks, ax=plot)
         
         # Del prev route from canvas
         if self.chartCanvas is not None:
@@ -185,7 +187,7 @@ class Menu:
         
         marks = {checkpt: self.topsNames[topsIds[i]] for i, checkpt in enumerate(checkpoints)}
         
-        self.updateChart(xVals,yVals, marks)
+        self.updateChart(xVals, yVals, marks)
         self.updateTime()
     
     def updateTime(self):

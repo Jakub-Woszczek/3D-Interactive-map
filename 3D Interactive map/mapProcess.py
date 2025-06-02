@@ -1,7 +1,8 @@
 from direct.showbase.ShowBase import ShowBase
 from direct.task.TaskManagerGlobal import taskMgr
 from core.controls.controls import Controls
-from terrainGenerator import gridGenerator
+from mapObjs import gridGenerator
+from mapObjs.routesGenerator import generateRoutes
 
 
 class MyGame(ShowBase):
@@ -13,9 +14,10 @@ class MyGame(ShowBase):
         self.game_controls.setupCamera(self)
         gridGenerator.generateMeshFromCSV(self)
         queue.put("completed")
-        taskMgr.add(self.game_controls.update, 'update')
+        generateRoutes(self,self.queue.get())
+        
+        taskMgr.ad3d(self.game_controls.update, 'update')
         
 def runMap(q):
-    # config = config_queue.get()
     game = MyGame(q)
     game.run()

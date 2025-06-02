@@ -1,1 +1,45 @@
-venv
+# Python – pliki binarne i cache
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+*.exe
+*.dll
+*.o
+*.a
+*.out
+
+# Virtualenv
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# PyCharm
+.idea/
+
+# Pliki logów i tymczasowe
+*.log
+*.tmp
+*.swp
+
+# Pliki testów
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.xml
+.cache
+.pytest_cache/
+
+# Pliki konfiguracyjne użytkownika
+*.env
+*.ini
+*.cfg
+
+# Buildy i disty (jeśli projekt to paczka)
+build/
+dist/
+*.egg-info/

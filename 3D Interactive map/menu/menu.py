@@ -8,11 +8,7 @@ from PIL import Image, ImageTk
 def runMenu(configQ):
     
     def sendConfig():
-        print("Start clicked")  # ← Debug
-        config = {
-            "scale": 1,
-            "pos": 1
-        }
+        config = menu.activeEdgedIds
         configQ.put(config)
         root.destroy()
     
