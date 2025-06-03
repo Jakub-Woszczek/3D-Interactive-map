@@ -26,17 +26,18 @@ def generateMeshFromCSV(app, y_file="assets/y.csv", z_file="assets/mapa_terenu")
     triangles = GeomTriangles(Geom.UHStatic)
     vertexIdx = 0
 
-    for row in range(0, rows - 1):
-        for col in range(0, cols - 1):
-            z0 = heights[row, col]*increaseHeight
-            z1 = heights[row, col + 1]*increaseHeight
-            z2 = heights[row + 1, col]*increaseHeight
-            z3 = heights[row + 1, col + 1]*increaseHeight
+    step = 100
+    for row in range(0, rows - step, step):
+        for col in range(0, cols - step, step):
+            z0 = heights[row, col] * increaseHeight
+            z1 = heights[row, col + step] * increaseHeight
+            z2 = heights[row + step, col] * increaseHeight
+            z3 = heights[row + step, col + step] * increaseHeight
 
             p0 = (distro[col], distro[row], z0)
-            p1 = (distro[col + 1], distro[row], z1)
-            p2 = (distro[col], distro[row + 1], z2)
-            p3 = (distro[col + 1], distro[row + 1], z3)
+            p1 = (distro[col + step], distro[row], z1)
+            p2 = (distro[col], distro[row + step], z2)
+            p3 = (distro[col + step], distro[row + step], z3)
             
             avgZ1 = (z0 + z1 + z2) / 3
             flatColor1 = heightToColor(avgZ1, Zmin, Zmax)
@@ -53,7 +54,8 @@ def generateMeshFromCSV(app, y_file="assets/y.csv", z_file="assets/mapa_terenu")
                 color.addData4f(*flat_color2)
             triangles.addVertices(vertexIdx, vertexIdx + 1, vertexIdx + 2)
             vertexIdx += 3
-        app.queue.put(int(row/rows*1000))
+        
+        app.queue.put(int(row / rows * 1000))
 
     geom = Geom(vdata)
     geom.addPrimitive(triangles)
