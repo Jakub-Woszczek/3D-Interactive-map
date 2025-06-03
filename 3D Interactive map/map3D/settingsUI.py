@@ -1,18 +1,16 @@
-from venv import create
-
 from direct.gui.DirectButton import DirectButton
 from direct.gui.DirectFrame import DirectFrame
 from direct.gui.DirectLabel import DirectLabel
 from direct.gui.DirectRadioButton import DirectRadioButton
 from panda3d.core import TransparencyAttrib, TextNode
-
+from map3D.mapConfig import DEFAULT_MESH_CONFIG,MESH_BY_HEIGHT,MESH_BY_SLOPE
 
 class SettingsUI:
     def __init__(self,app):
         self.app = app
         self.optsFrame = None
         self.optsButton = None
-        self.color_scheme = 0 # 0 - height / 1 - slope
+        self.color_scheme = self.app.terrainMeshConfig
         self.color_scheme_var = [self.color_scheme]
         
         self.createSettingsIcon()
@@ -31,7 +29,6 @@ class SettingsUI:
 
     
     def openSettingsWindow(self):
-        print("sett window opened")
         
         if self.optsFrame:
             self.closeSettings()
@@ -63,6 +60,7 @@ class SettingsUI:
             text_fg=(0, 0, 0, 1)
         )
         
+        self.color_scheme_var[0] = 0 if self.color_scheme == MESH_BY_HEIGHT else 1
         btn1 = DirectRadioButton(
             text="Height oriented",
             variable=self.color_scheme_var,
@@ -71,7 +69,7 @@ class SettingsUI:
             pos=(-0.18, 0, 0.20),
             pad=(0.2, 0.1),
             parent=self.optsFrame,
-            command=lambda: self.select_scheme(0)
+            command=lambda: self.select_scheme(MESH_BY_HEIGHT)
         )
         
         btn2 = DirectRadioButton(
@@ -82,21 +80,12 @@ class SettingsUI:
             pos=(-0.18, 0, 0.10),
             pad=(0.2, 0.1),
             parent=self.optsFrame,
-            command=lambda: self.select_scheme(1)
+            command=lambda: self.select_scheme(MESH_BY_SLOPE)
         )
         
-        # Połącz je w grupę
+        # Entwine buttons
         btn1.setOthers([btn2])
         btn2.setOthers([btn1])
-        
-        if self.color_scheme == 0:
-            btn1.setIndicatorValue()
-            btn2["indicatorValue"] = False
-            print("jestem1")
-        else:
-            btn2.setIndicatorValue()
-            btn1["indicatorValue"] = False
-            print("jestem2")
 
         DirectButton(
             parent=self.optsFrame,
@@ -140,15 +129,13 @@ class SettingsUI:
         self.optsFrame = None
     
     def exitGame(self):
-        from sys import exit
-        exit()
+        self.app.userExit()
     
     def select_scheme(self,scheme):
         self.color_scheme = scheme
-        print("Wybrano:", scheme)
     
     def saveSettings(self):
-        print("saving settings")
+        self.app.updateMeshColor(self.color_scheme)
         return
     
     # def backToMenu(self):

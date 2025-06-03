@@ -29,7 +29,6 @@ def generateRoutes(app,config,distro="assets/y.csv", z_file="assets/mapa_terenu"
     :param app: Application instance.
     :param config: IDs array of chosen edges
     """
-    print(f"Config: {config}")
     try:
         distro = np.loadtxt(distro, delimiter=",")
         heights = np.loadtxt(z_file, delimiter=",")
