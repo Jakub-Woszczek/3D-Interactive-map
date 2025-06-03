@@ -24,7 +24,7 @@ def runMenu(configQ):
     
     # Canvas map
     canvaSize = 600
-    imgPath = 'assets/test_napis5.png'
+    imgPath = 'assets/mapaMenu.png'
     X = colPixelUnit
     Y = rowPixelUnit*2
     
