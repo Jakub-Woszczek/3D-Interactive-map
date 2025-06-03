@@ -1,9 +1,12 @@
+import math
+
 import numpy as np
-from panda3d.core import GeomVertexFormat, GeomVertexData, GeomVertexWriter, LineSegs, TextNode
+from panda3d.core import GeomVertexFormat, GeomVertexData, GeomVertexWriter, LineSegs, TextNode, Vec3
 from panda3d.core import GeomTriangles, Geom, GeomNode
 from assets.peaks import peaksData
 
-def generateMeshFromCSV(app, y_file="assets/y.csv", z_file="assets/mapa_terenu"):
+
+def generateMeshFromCSV(app,meshType, y_file="assets/y.csv", z_file="assets/mapa_terenu"):
     try:
         distro = np.loadtxt(y_file, delimiter=",")
         heights = np.loadtxt(z_file, delimiter=",")
@@ -40,7 +43,11 @@ def generateMeshFromCSV(app, y_file="assets/y.csv", z_file="assets/mapa_terenu")
             p3 = (distro[col + step], distro[row + step], z3)
             
             avgZ1 = (z0 + z1 + z2) / 3
-            flatColor1 = heightToColor(avgZ1, Zmin, Zmax)
+            if meshType == "height":
+                flatColor1 = heightToColor(avgZ1, Zmin, Zmax)
+            else:
+                flatColor1 = slopeToColor(p1,p2,p0)
+            
             for pos in [p0, p1, p2]:
                 vertex.addData3f(*pos)
                 color.addData4f(*flatColor1)
@@ -48,7 +55,11 @@ def generateMeshFromCSV(app, y_file="assets/y.csv", z_file="assets/mapa_terenu")
             vertexIdx += 3
 
             avg_z2 = (z2 + z1 + z3) / 3
-            flat_color2 = heightToColor(avg_z2, Zmin, Zmax)
+            if meshType == "height":
+                flat_color2 = heightToColor(avg_z2, Zmin, Zmax)
+            else:
+                flat_color2 = slopeToColor(p2,p1,p3)
+            
             for pos in [p2, p1, p3]:
                 vertex.addData3f(*pos)
                 color.addData4f(*flat_color2)
@@ -64,6 +75,7 @@ def generateMeshFromCSV(app, y_file="assets/y.csv", z_file="assets/mapa_terenu")
     node.addGeom(geom)
 
     nodePath = app.render.attachNewNode(node)
+    app.terrainMeshNode.append(nodePath)
     nodePath.setTwoSided(True)
     nodePath.setTransparency(True)
     
@@ -126,3 +138,53 @@ def heightToColor(z, Zmin, Zmax):
         g = 0.5 * (1 - t)
 
     return (r, g, 0, 1)
+
+def slopeToColor(p1,p2,p3):
+    """
+    Computes a color based on the slope of a triangle defined by three 3D points.
+
+    The slope is calculated as the angle between the triangle’s normal vector and the vertical axis (Z).
+
+    Color mapping (with smooth transitions between them):
+        - 0°: Green
+        - 20°: Yellow
+        - 40°: Orange
+        - 60°: Red
+        - 90°: Black
+    
+    :p1: 3D point
+    :p2: 3D point
+    :p3: 3D point
+    :return: A tuple representing the RGBA color corresponding to the slope.
+    """
+    
+    v1 = Vec3(p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2])
+    v2 = Vec3(p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2])
+    
+    normal = v1.cross(v2)
+    normal.normalize()
+    
+    vertical = Vec3(0, 0, 1)
+    dot = normal.dot(vertical)
+    angle_rad = math.acos(max(min(dot, 1.0), -1.0))  # Clamp dot product
+    angle_deg = math.degrees(angle_rad)
+    
+    def lerp(c1, c2, t):
+        return tuple(c1[i] + (c2[i] - c1[i]) * t for i in range(4))
+    
+    breakpoints = [
+        (0, (0, 1, 0, 1)),
+        (20, (1, 1, 0, 1)),
+        (40, (1, 0.5, 0, 1)),
+        (60, (1, 0, 0, 1)),
+        (90, (0, 0, 0, 1)),
+    ]
+    
+    for i in range(len(breakpoints) - 1):
+        a0, c0 = breakpoints[i]
+        a1, c1 = breakpoints[i + 1]
+        if a0 <= angle_deg < a1:
+            t = (angle_deg - a0) / (a1 - a0)
+            return lerp(c0, c1, t)
+    
+    return breakpoints[-1][1]
