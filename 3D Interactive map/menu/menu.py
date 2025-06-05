@@ -23,8 +23,6 @@ def runMenu(configQ):
     mapLoaderListener = threading.Thread(target=menu.listenToMapProgress, args=(configQ,),daemon=True)
     mapLoaderListener.start()
     
-    menu.showManual()
-    
     # Canvas map
     canvaSize = 600
     imgPath = 'assets/mapaMenu.png'

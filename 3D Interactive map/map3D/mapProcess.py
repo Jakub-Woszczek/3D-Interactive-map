@@ -10,15 +10,15 @@ class MyGame(ShowBase):
     def __init__(self, queue):
         ShowBase.__init__(self)
         self.queue = queue
-        self.game_controls = Controls(self)
+        self.gameControls = Controls(self)
         self.terrainMeshNode = []
         self.terrainMeshConfig = DEFAULT_MESH_CONFIG
-        self.game_controls.setupControls(self)
-        self.game_controls.setupCamera(self)
+        self.gameControls.setupControls(self)
+        self.gameControls.setupCamera(self)
         self.settingsUI = SettingsUI(self)
         self.loadMapObjs()
         
-        taskMgr.add(self.game_controls.update, 'update')
+        taskMgr.add(self.gameControls.update, 'update')
     
     def loadMapObjs(self):
         gridGenerator.generateMeshFromCSV(self,DEFAULT_MESH_CONFIG)

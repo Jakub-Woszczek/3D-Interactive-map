@@ -9,19 +9,19 @@ if __name__ == "__main__":
     parser.add_argument("--map",action="store_true", help="Activate only map")
     args = parser.parse_args()
     
-    config_queue = Queue()
+    configQueue = Queue()
     
     if args.menu:
-        runMenu(config_queue)
+        runMenu(configQueue)
     elif args.map:
-        runMap(config_queue)
+        runMap(configQueue)
     else:
     
-        menu_proc = Process(target=runMenu, args=(config_queue,))
-        map_proc = Process(target=runMap, args=(config_queue,))
+        menuProc = Process(target=runMenu, args=(configQueue,))
+        mapProc = Process(target=runMap, args=(configQueue,))
     
-        menu_proc.start()
-        map_proc.start()
+        menuProc.start()
+        mapProc.start()
     
-        menu_proc.join()
-        map_proc.join()
+        menuProc.join()
+        mapProc.join()

@@ -19,11 +19,11 @@ def drawPathLine(app, points, color=(1, 0, 0, 1), thickness=3.0):
     for pt in points[1:]:
         lineSegs.drawTo(*pt)
 
-    line_node = lineSegs.create()
-    app.render.attachNewNode(line_node)
+    lineNode = lineSegs.create()
+    app.render.attachNewNode(lineNode)
 
 
-def generateRoutes(app,config,distro="assets/y.csv", z_file="assets/mapa_terenu"):
+def generateRoutes(app,config,distro="assets/gridSpacing.csv", zFile="assets/mapaTerenu"):
     """
     Generates routes on map 3D and highlights the chosen ones.
     :param app: Application instance.
@@ -31,7 +31,7 @@ def generateRoutes(app,config,distro="assets/y.csv", z_file="assets/mapa_terenu"
     """
     try:
         distro = np.loadtxt(distro, delimiter=",")
-        heights = np.loadtxt(z_file, delimiter=",")
+        heights = np.loadtxt(zFile, delimiter=",")
     except Exception as e:
         print(f"Błąd przy wczytywaniu plików CSV: {e}")
         return
@@ -44,9 +44,9 @@ def generateRoutes(app,config,distro="assets/y.csv", z_file="assets/mapa_terenu"
             for line in f:
                 line = line.strip()
                 if line.startswith('(') and line.endswith(')'):
-                    x_str, y_str = line[1:-1].split(',')
-                    x = int(x_str.strip())
-                    y = int(y_str.strip())
+                    xStr, yStr = line[1:-1].split(',')
+                    x = int(xStr.strip())
+                    y = int(yStr.strip())
                     route.append((distro[y], distro[x], heights[x,y]*increaseHeight + floatingFactor))
         
         if i in config:

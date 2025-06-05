@@ -54,9 +54,9 @@ class Menu:
                 for line in f:
                     line = line.strip()
                     if line.startswith('(') and line.endswith(')'):
-                        x_str, y_str = line[1:-1].split(',')
-                        x = int(x_str.strip())
-                        y = int(y_str.strip())
+                        xStr, yStr = line[1:-1].split(',')
+                        x = int(xStr.strip())
+                        y = int(yStr.strip())
                         route.append((x, y))
                 self.routes.append(route)
     
@@ -121,8 +121,8 @@ class Menu:
         return fullRouteCleaned
     
     def eraseRoutesFromCanvas(self):
-        for line_id in self.routesCanvaIDs:
-            self.mapCanvas.delete(line_id)
+        for lineID in self.routesCanvaIDs:
+            self.mapCanvas.delete(lineID)
         self.routesCanvaIDs = []
     
     def makeListboxBind(self,entry, listbox):
@@ -155,7 +155,7 @@ class Menu:
         
         for path in allPaths:
             for edgeIdx in path:
-                ids = drawRoute(self.mapCanvas,self.routes[edgeIdx])
+                ids = drawRoute(self.mapCanvas, self.routes[edgeIdx])
                 self.routesCanvaIDs += ids
                 
         return routePoints
@@ -167,7 +167,7 @@ class Menu:
         fig = Figure(figsize=(width, height), dpi=dpi)
         plot = fig.add_subplot(111)
         
-        drawElevationChart(x, y, pionowe_linie=marks, ax=plot)
+        drawElevationChart(x, y, pionoweLinie=marks, ax=plot)
         
         # Del prev route from canvas
         if self.chartCanvas is not None:
@@ -195,8 +195,8 @@ class Menu:
         fullRoute = [self.start] + self.hikingStops + [self.end]
         fullRouteCleaned = [top for top in fullRoute if top is not None]
         
-        time_text = "0 h" if len(fullRouteCleaned) < 2 else f"{self.graph.getTravelTime(fullRouteCleaned)} h"
-        self.travelTimeLabel.config(text=time_text)
+        timeText = "0 h" if len(fullRouteCleaned) < 2 else f"{self.graph.getTravelTime(fullRouteCleaned)} h"
+        self.travelTimeLabel.config(text=timeText)
     
     def generateRandomTopName(self):
         nameID = randint(0, len(peaksData) - 1)
@@ -243,7 +243,7 @@ class Menu:
         y = self.tkRoot.winfo_screenheight() // 2 - baseHeight // 2
         popup.geometry(f"{baseWidth}x{baseHeight}+{x}+{y}")
         
-        def delete_selected_stop(index):
+        def deleteSelectedStop(index):
             self.hikingStops.pop(index)
             popup.destroy()
             self.updateMenu()
@@ -253,7 +253,7 @@ class Menu:
         for idx, topID in enumerate(self.hikingStops):
             name = self.topsNames[topID]
             btn = tk.Button(popup, text=name, width=12, height=2,
-                            command=lambda i=idx: delete_selected_stop(i))
+                            command=lambda i=idx: deleteSelectedStop(i))
             btn.place(x=marginWidth + idx * (buttonWidth + marginWidth), y=marginHeight)
         
     def listenToMapProgress(self,q):
@@ -356,7 +356,7 @@ def selectFromListbox(listbox,entry):
         listbox.place_forget()
 
 
-def drawRoute(canvas,points,tag='route_line', orgImgSize=(2048,2048), newImgSize=(600,600)):
+def drawRoute(canvas,points,tag='routeLine', orgImgSize=(2048,2048), newImgSize=(600,600)):
     ox, oy = orgImgSize
     nx, ny = newImgSize
 
@@ -376,7 +376,7 @@ def drawRoute(canvas,points,tag='route_line', orgImgSize=(2048,2048), newImgSize
     return ids
 
 
-def gradientFill(x, y, y_min, y_max, ax=None):
+def gradientFill(x, y, yMin, yMax, ax=None):
     """
     Rysuje wykres z linią oraz gradientowym wypełnieniem pod nią.
     Parametry linii i gradientu są ustawiane osobno.
@@ -398,47 +398,46 @@ def gradientFill(x, y, y_min, y_max, ax=None):
     z[:, :, -1] = np.linspace(bottomAlpha, topAlpha, 100)[:, None]
     
     xmin, xmax = x.min(), x.max()
-    ymin, ymax = y_min, y_max
+    ymin, ymax = yMin, yMax
     im = ax.imshow(z, aspect='auto', extent=[xmin, xmax, ymin, ymax],
                    origin='lower', zorder=zorder)
     
     xy = np.column_stack([x, y])
     xy = np.vstack([[xmin, ymin], xy, [xmax, ymin], [xmin, ymin]])
-    clip_path = Polygon(xy, facecolor='none', edgecolor='none', closed=True)
-    ax.add_patch(clip_path)
-    im.set_clip_path(clip_path)
+    clipPath = Polygon(xy, facecolor='none', edgecolor='none', closed=True)
+    ax.add_patch(clipPath)
+    im.set_clip_path(clipPath)
     
     ax.autoscale(True)
     return line, im
 
-def drawElevationChart(x_vals, y_vals, pionowe_linie=None, ax=None):
+def drawElevationChart(Xvals, Yvals, pionoweLinie=None, ax=None):
     """
     Plots elevation profile with marked route points
     """
     if ax is None:
         raise ValueError("Musisz przekazać ax (AxesSubplot)")
         
-    y_min, y_max = 4.1741213941640275e-05, 4.634259615214229
-    gradientFill(x_vals, y_vals, y_min, y_max, ax=ax)
+    yMin, yMax = 4.1741213941640275e-05, 4.634259615214229
+    gradientFill(Xvals, Yvals, yMin, yMax, ax=ax)
     
-    if pionowe_linie:
-        for xv, label in pionowe_linie.items():
-            y_bottom = y_min
-            y_top = np.interp(xv, x_vals, y_vals)
+    if pionoweLinie:
+        for xv, label in pionoweLinie.items():
+            yTop = np.interp(xv, Xvals, Yvals)
             
-            ax.vlines(x=xv, ymin=y_bottom, ymax=y_top, color='gray', linewidth=0.7, alpha=0.6)
+            ax.vlines(x=xv, ymin=yMin, ymax=yTop, color='gray', linewidth=0.7, alpha=0.6)
             
-            ax.plot(xv, y_top, marker='o', markersize=7,
+            ax.plot(xv, yTop, marker='o', markersize=7,
                     markerfacecolor='white', markeredgecolor='gray', markeredgewidth=1)
             
-            ax.text(xv, y_top + 0.1, label, color='black', fontsize=9,
+            ax.text(xv, yTop + 0.1, label, color='black', fontsize=9,
                     ha='center', va='bottom')
     
     ax.grid(axis='y', alpha=0.3)
     ax.grid(axis='x', visible=False)
     
     # ax.set_ylabel("Wysokość")
-    ax.set_ylim(y_min, y_max + 1)
+    ax.set_ylim(yMin, yMax + 1)
     
     for spine in ax.spines.values():
         spine.set_visible(False)
@@ -453,23 +452,23 @@ class PlaceholderEntry(tk.Entry):
     def __init__(self, master=None, placeholder="placeholder", color='grey', *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.placeholder = placeholder
-        self.placeholder_color = color
-        self.default_fg_color = self['fg']  # Domyślny kolor tekstu
+        self.placeholderColor = color
+        self.defaultFgColor = self['fg']
 
-        self.bind("<FocusIn>", self._on_focus_in)
-        self.bind("<FocusOut>", self._on_focus_out)
+        self.bind("<FocusIn>", self._onFocusIn)
+        self.bind("<FocusOut>", self._onFocusOut)
 
-        self._put_placeholder()
+        self._putPlaceholder()
 
-    def _put_placeholder(self):
+    def _putPlaceholder(self):
         self.insert(0, self.placeholder)
-        self.config(fg=self.placeholder_color)
+        self.config(fg=self.placeholderColor)
 
-    def _on_focus_in(self, event):
+    def _onFocusIn(self, event):
         if self.get() == self.placeholder:
             self.delete(0, tk.END)
-            self.config(fg=self.default_fg_color)
+            self.config(fg=self.defaultFgColor)
 
-    def _on_focus_out(self, event):
+    def _onFocusOut(self, event):
         if not self.get():
-            self._put_placeholder()
+            self._putPlaceholder()
