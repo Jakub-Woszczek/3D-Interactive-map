@@ -38,6 +38,7 @@ class Menu:
         self.progressBar = None
         self.startButton = None
         self.activeEdgedIds = None
+        self.showManualButton = None
         
         self.importTopsNames()
         self.importRoutes()
@@ -267,6 +268,56 @@ class Menu:
                 self.progressBar['value'] = percentLoaded/10
             except:
                 pass
+    
+    def showManual(self):
+        """
+        Shows popup with manual instruction.
+        :return:
+        """
+        manualWindow = tk.Toplevel(self.tkRoot)
+        manualWindow.title("Instrukcja obsługi")
+        manualWindow.geometry("400x300")
+        
+        manualText = (
+            "Witaj podróżniku!\n\n"
+            "1. Aby utworzyć trasę, wpisz początek i koniec w odpowiednie pola, a następnie kliknij „Add”.\n\n"
+            "2. Aby dodać przystanek pośredni, skorzystaj z pola „Dodaj przystanek” i kliknij „Add”. "
+            "Możesz dodać maksymalnie 3 przystanki.\n\n"
+            "3. Przystanki są dodawane w kolejności:\n"
+            "   początek → przystanek 1 → przystanek 2 → przystanek 3 → koniec\n\n"
+            "4. Aby usunąć przystanek, kliknij „Usuń przystanek” i wybierz odpowiedni.\n\n"
+            "5. Gdy mapa 3D się załaduje, kliknij „Mapa 3D”, aby zobaczyć swoją trasę z lotu ptaka.\n\n"
+            "Udanej podróży!"
+        )
+        
+        label = tk.Label(
+            manualWindow,
+            text=manualText,
+            justify="left",
+            padx=20,
+            pady=20,
+            wraplength=650,
+            anchor="w"
+        )
+        label.pack(expand=True, fill="both")
+        label.config(font=("Helvetica", 12))
+        
+        closeButton = tk.Button(manualWindow, text="Zamknij", command=manualWindow.destroy)
+        closeButton.pack(pady=10)
+        
+        windowWidth = 700
+        windowHeight = 300
+        screenWidth = self.tkRoot.winfo_screenwidth()
+        screenHeight = self.tkRoot.winfo_screenheight()
+        
+        positionTop = int(screenHeight / 2 - windowHeight / 2)
+        positionRight = int(screenWidth / 2 - windowWidth / 2)
+        
+        manualWindow.geometry(f'{windowWidth}x{windowHeight}+{positionRight}+{positionTop}')
+        
+        manualWindow.transient(self.tkRoot)
+        manualWindow.grab_set()
+        self.tkRoot.wait_window(manualWindow)
 
 
 def gridPlace(widget, col, row, colspan=DEFAULT_COLSPAN, rowspan=DEFAULT_ROWSPAN):

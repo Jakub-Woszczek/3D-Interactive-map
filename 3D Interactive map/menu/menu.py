@@ -14,6 +14,7 @@ def runMenu(configQ):
     
     # Tinkter initialization
     root = tk.Tk()
+    root.bind("<Escape>", lambda e: root.destroy())
     root.attributes("-fullscreen", True)
     menu = Menu(root)
     colPixelUnit = 1920/40
@@ -21,6 +22,8 @@ def runMenu(configQ):
     
     mapLoaderListener = threading.Thread(target=menu.listenToMapProgress, args=(configQ,),daemon=True)
     mapLoaderListener.start()
+    
+    menu.showManual()
     
     # Canvas map
     canvaSize = 600
@@ -52,7 +55,7 @@ def runMenu(configQ):
     gridPlace(labelRoute, 27, 1,colspan=3)
     
     # Delete hiking stop button
-    deleteHikingStopButton = tk.Button(root, text="Delete Hiking Stop", command=menu.deleteHikingStop)
+    deleteHikingStopButton = tk.Button(root, text="Usuń przystanek", command=menu.deleteHikingStop)
     gridPlace(deleteHikingStopButton, 33, 1,colspan=3,rowspan=1)
     
     # Route graph boxes
@@ -60,13 +63,13 @@ def runMenu(configQ):
     gridPlace(menu.routeGraphLabel, 20, 2,colspan=17)
     
     # Autocomplete Entry
-    labelStart = tk.Label(root, text="Początek")
+    labelStart = tk.Label(root, text="Początek trasy")
     gridPlace(labelStart, 20, 4)
     
-    labelEnd = tk.Label(root, text="Koniec")
+    labelEnd = tk.Label(root, text="Koniec trasy")
     gridPlace(labelEnd, 26, 4)
     
-    labelStop = tk.Label(root, text="Dodaj przystanek")
+    labelStop = tk.Label(root, text="Dodaj przystanek do trasy")
     gridPlace(labelStop, 32, 4)
     
     for idx,i in enumerate([20,26,32]):
@@ -102,6 +105,10 @@ def runMenu(configQ):
     
     labelRoute = tk.Label(root, text="Ładowanie mapy 3D")
     gridPlace(labelRoute, 30, 17,colspan=3)
+    
+    # Show manual button
+    menu.showManualButton = tk.Button(root, text="Pokaż instrukcje",command=menu.showManual,bg="#E6E6FA",activebackground="#D8BFD8")
+    gridPlace(menu.showManualButton,18,17, colspan=3)
     
     # Button
     menu.startButton = tk.Button(root, text="Mapa 3D\n(trwa ładowanie)", command=sendConfig,state="disabled")

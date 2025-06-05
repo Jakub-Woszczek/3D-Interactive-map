@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     if args.menu:
         runMenu(config_queue)
-    if args.map:
+    elif args.map:
         runMap(config_queue)
     else:
     
