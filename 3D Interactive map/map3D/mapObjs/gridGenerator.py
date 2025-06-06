@@ -7,6 +7,14 @@ from assets.peaks import peaksData
 
 
 def generateMeshFromCSV(app,meshType, distroFile="assets/gridSpacing.csv", zFile="assets/mapaTerenu"):
+    """
+    Generates a 3D terrain mesh from CSV files containing grid spacing and height data and billboard for each top.
+
+    :param app: Application instance with rendering context.
+    :param meshType: Determines color mapping mode ("height" or "slope").
+    :param distroFile: Path to CSV file with grid spacing data.
+    :param zFile: Path to CSV file with height data.
+    """
     try:
         distro = np.loadtxt(distroFile, delimiter=",")
         heights = np.loadtxt(zFile, delimiter=",")
@@ -116,13 +124,18 @@ def generateMeshFromCSV(app,meshType, distroFile="assets/gridSpacing.csv", zFile
         textNodePath.setBillboardPointEye()
 
 def heightToColor(z, Zmin, Zmax):
+    """
+    Maps a height value (z) to a color gradient based on its normalized value within a given range.
+
+    The color transitions smoothly through:
+        - Green (low) → Yellow → Orange → Red (high)
+
+    :param z: Height map value.
+    :param Zmin: Minimum height in the range.
+    :param Zmax: Maximum height in the range.
+    :return: A tuple (R, G, B, A) representing the RGBA color.
+    """
     normZ = (z - Zmin) / (Zmax - Zmin) if Zmax > Zmin else 0
-    """
-    zielony: (0, 1, 0)
-    żółty: (1, 1, 0)
-    pomarańczowy: (1, 0.5, 0)
-    czerwony: (1, 0, 0)
-    """
 
     if normZ < 0.33:
         t = normZ / 0.33

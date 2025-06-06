@@ -13,14 +13,19 @@ class MyGame(ShowBase):
         self.gameControls = Controls(self)
         self.terrainMeshNode = []
         self.terrainMeshConfig = DEFAULT_MESH_CONFIG
+        self.settingsUI = SettingsUI(self)
+        
         self.gameControls.setupControls(self)
         self.gameControls.setupCamera(self)
-        self.settingsUI = SettingsUI(self)
         self.loadMapObjs()
         
         taskMgr.add(self.gameControls.update, 'update')
     
     def loadMapObjs(self):
+        """
+        Creates objs on in game, terrain, background and routes from config
+        :return:
+        """
         gridGenerator.generateMeshFromCSV(self,DEFAULT_MESH_CONFIG)
         bgGenerator.generateBg(self)
         self.queue.put("completed")
@@ -28,16 +33,20 @@ class MyGame(ShowBase):
             item = self.queue.get()
             if isinstance(item, list):
                 generateRoutes(self, item)
-            else:
-                pass
-                # generateRoutes(self, [])
     
     def clearMesh(self):
+        """
+        Removes all terrain nodes (used during change of map colours)
+        """
         for node in self.terrainMeshNode:
             node.removeNode()
         self.terrainMeshNode.clear()
     
     def updateMeshColor(self,config):
+        """
+        If the current map type differs from the one selected in the config,
+        the function removes the existing map and creates a new one.
+        """
         if self.terrainMeshConfig == config:
             return
         self.clearMesh()

@@ -49,7 +49,6 @@ class SettingsUI:
             text_fg=(0, 0, 0, 1),
         )
         
-        # Podtytuł: Color scheme
         DirectLabel(
             parent=self.optsFrame,
             text="<- Color scheme",

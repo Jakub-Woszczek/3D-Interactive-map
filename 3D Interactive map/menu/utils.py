@@ -16,28 +16,29 @@ DEFAULT_ROWSPAN = 1
 
 class Menu:
     def __init__(self,root):
-        self.tops = peaksData
-        self.start = None # Stores ID of top
-        self.end = None # Stores ID of top
-        self.hikingStops = [] # Stores IDs of tops
-        self.topsNames = []
-        self.tkRoot = root
-        self.routeHandling = [] # Array with entries [startEntry,endEntry,stopEntry]
-        self.mapCanvas = None
-        self.routes = []
-        self.currListbox = []
-        self.routesCanvaIDs = []
-        self.edgeWeights = routeTime
+        self.tops = peaksData       # Array of tuples with tops names and tuple of coords on map
+        self.start = None           # Stores ID of top
+        self.end = None             # Stores ID of top
+        self.hikingStops = []       # Stores IDs of tops
+        self.topsNames = []         # Stores names of tops as strings (topsNames[topIdx] = name)
+        self.tkRoot = root          # Instance of tinkter window
+        self.routeHandling = []     # Array with entries [startEntry,endEntry,stopEntry]
+        self.mapCanvas = None       # Instance of canvas
+        self.routes = []            # Array of routes, where each is list of pixel coords (one after another)
+        self.routesCanvaIDs = []    # IDs of drawn line on canvas
+        self.edgeWeights = routeTime # Weight of each edge idx
         self.topsAmnt = 0
+        # Menu grid unit size
         self.colPixelUnit = 1920 / 40
         self.rowPixelUnit = 1080 / 20
-        self.chartCanvas = None
+        
+        self.chartCanvas = None # Elevation chart canvas
         self.graph = Graph()
         self.travelTimeLabel = None
         self.routeGraphLabel = None
         self.progressBar = None
         self.startButton = None
-        self.activeEdgedIds = None
+        self.activeEdgedIds = None # Stores edges ids to send them in config to 3D map
         self.showManualButton = None
         
         self.importTopsNames()
@@ -60,8 +61,11 @@ class Menu:
                         route.append((x, y))
                 self.routes.append(route)
     
-    # Start-End ADD handling functions
-    def addTop(self, entryIdx,topType):
+    def addTop(self, entryIdx):
+        """
+        Add top to route if input in entry box is valid
+        :param entryIdx: Index of entry box
+        """
         entry = self.routeHandling[entryIdx]
         name = entry.get().strip()
         
@@ -73,12 +77,12 @@ class Menu:
         
         topID = self.topsNames.index(name)
         try:
-            fullRoute = self.isValidNewTop(topID,topType)
-            if topType == 0:
+            fullRoute = self.isValidNewTop(topID,entryIdx)
+            if entryIdx == 0:
                 self.start = topID
-            elif topType == 1:
+            elif entryIdx == 1:
                 self.end = topID
-            elif topType == 2:
+            elif entryIdx == 2:
                 self.hikingStops.append(topID)
             
             if len(fullRoute) > 1 : self.updateMenu()
@@ -94,9 +98,8 @@ class Menu:
         """
         Checks if the new top is valid, with condition that no 2 neighbouring tops can be the same.
         Prevents from adding more that 3 hiking stops.
-        :param newTopID:
-        :param topType:
-        :return:
+        :param topType: Start/end/hiking stop
+        :return: Idx of consecutive tops on the route
         """
         match topType:
             case 0:
@@ -121,6 +124,9 @@ class Menu:
         return fullRouteCleaned
     
     def eraseRoutesFromCanvas(self):
+        """
+        Erases previously drawn routed on canvas
+        """
         for lineID in self.routesCanvaIDs:
             self.mapCanvas.delete(lineID)
         self.routesCanvaIDs = []
@@ -161,6 +167,12 @@ class Menu:
         return routePoints
     
     def updateChart(self,x, y, marks):
+        """
+        Crates and plots elevation chart
+        :param x: List of x-values representing distances.
+        :param y: List of y-values representing elevations.
+        :param marks: List of x-values indicating the positions of mountain tops along the route.
+        """
         dpi = 100
         width = self.colPixelUnit * 17 / dpi
         height = self.rowPixelUnit * 3 / dpi
@@ -181,17 +193,23 @@ class Menu:
         self.chartCanvas.draw()
     
     def updateMenu(self):
+        """
+        Updates GUI elements when a valid top is added.
+        """
         topsIds = self.updateMapPahtVis()
 
         yVals,checkpoints = self.graph.getElevationProfile(topsIds)
         xVals = np.arange(len(yVals))
         
-        marks = {checkpt: self.topsNames[topsIds[i]] for i, checkpt in enumerate(checkpoints)}
+        marks = {checkPoint: self.topsNames[topsIds[i]] for i, checkPoint in enumerate(checkpoints)}
         
         self.updateChart(xVals, yVals, marks)
         self.updateTime()
     
     def updateTime(self):
+        """
+        Updates estimated time for travel, and actualizes it on label
+        """
         fullRoute = [self.start] + self.hikingStops + [self.end]
         fullRouteCleaned = [top for top in fullRoute if top is not None]
         
@@ -203,6 +221,10 @@ class Menu:
         return peaksData[nameID][0]
     
     def updateRouteGraphLabel(self):
+        """
+        Updates the travel graph displayed as:
+        top1 → top2 → ...
+        """
         fullRoute = [self.start] + self.hikingStops + [self.end]
         fullRouteCleaned = [top for top in fullRoute if top is not None]
         
@@ -217,6 +239,9 @@ class Menu:
         self.routeGraphLabel.config(text=text)
     
     def deleteHikingStop(self):
+        """
+        Creates popup window to choose which hiking stop to delete
+        """
         if len(self.hikingStops) < 1:
             messagebox.showerror("Logic error:", "Nie masz dodanych żadnych przystanków")
             return
@@ -230,8 +255,6 @@ class Menu:
         marginHeight = 30
         buttonHeight = 50
         baseHeight = 2*marginHeight + buttonHeight
-        
-        
         
         popup = tk.Toplevel(self.tkRoot)
         popup.title("Choose hiking stop to delete")
@@ -257,6 +280,10 @@ class Menu:
             btn.place(x=marginWidth + idx * (buttonWidth + marginWidth), y=marginHeight)
         
     def listenToMapProgress(self,q):
+        """
+        Listens to the progress of loading the 3D map and updates the progress bar with percentage values.
+        :param q: queue
+        """
         while True:
             try:
                 percentLoaded = q.get(timeout=1)
@@ -321,6 +348,9 @@ class Menu:
 
 
 def gridPlace(widget, col, row, colspan=DEFAULT_COLSPAN, rowspan=DEFAULT_ROWSPAN):
+    """
+    Places the widget at specific coordinates with a defined size to achieve basic layout ordering.
+    """
     relx = col / 40
     rely = row / 20
     relwidth = colspan / 40
@@ -357,6 +387,15 @@ def selectFromListbox(listbox,entry):
 
 
 def drawRoute(canvas,points,tag='routeLine', orgImgSize=(2048,2048), newImgSize=(600,600)):
+    """
+    Draws lines between each pair of consecutive points in the 'points' array.
+
+    :param canvas: The Tkinter Canvas instance where lines will be drawn.
+    :param points: List of points (e.g., [(x1, y1), (x2, y2), ...]).
+    :param tag: Tag assigned to each line (used for future deletion).
+    :param orgImgSize: Original image size as a (width, height) tuple.
+    :param newImgSize: Resized image size as a (width, height) tuple.
+    """
     ox, oy = orgImgSize
     nx, ny = newImgSize
 
@@ -436,7 +475,6 @@ def drawElevationChart(Xvals, Yvals, pionoweLinie=None, ax=None):
     ax.grid(axis='y', alpha=0.3)
     ax.grid(axis='x', visible=False)
     
-    # ax.set_ylabel("Wysokość")
     ax.set_ylim(yMin, yMax + 1)
     
     for spine in ax.spines.values():
@@ -464,11 +502,11 @@ class PlaceholderEntry(tk.Entry):
         self.insert(0, self.placeholder)
         self.config(fg=self.placeholderColor)
 
-    def _onFocusIn(self, event):
+    def _onFocusIn(self, _):
         if self.get() == self.placeholder:
             self.delete(0, tk.END)
             self.config(fg=self.defaultFgColor)
 
-    def _onFocusOut(self, event):
+    def _onFocusOut(self, _):
         if not self.get():
             self._putPlaceholder()

@@ -165,7 +165,10 @@ class Graph:
         return elevationProfile, cumsumList([0] + distances)
     
     def getTravelTime(self, topsIdx):
-        
+        """
+        Computes the total travel time along the shortest path that passes through the given top indices.
+        :return: Total travel time
+        """
         allPaths = [
             self.findShortestPath(a, b)
             for a, b in zip(topsIdx, topsIdx[1:])

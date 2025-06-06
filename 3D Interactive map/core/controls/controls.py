@@ -35,6 +35,9 @@ class Controls:
         
 
     def setupControls(self,app):
+        """
+        Sets up key bindings and initializes input handling for camera movement.
+        """
         app.keyMap = {
             "forward": False,
             "backward": False,
@@ -45,8 +48,6 @@ class Controls:
         }
         self.captureMouse()
         app.accept('escape', self.releaseMouse)
-        # app.accept('mouse1', app.handleLeftClick)
-        # app.accept('mouse3', app.placeBlock)
         
         app.accept(Keys.W.value, self.updateKeyMap, ['forward', True])
         app.accept(Keys.W_UP.value, self.updateKeyMap, ['forward', False])
@@ -61,13 +62,15 @@ class Controls:
         app.accept(Keys.LSHIFT.value, self.updateKeyMap, ['down', True])
         app.accept(Keys.LSHIFT_UP.value, self.updateKeyMap, ['down', False])
     
-    # Initial camera setup
     def setupCamera(self,app):
+        """
+        Initializes the camera position, field of view, and mouse properties.
+        """
         # Use here captureMouse(self)
         properties = WindowProperties()
         properties.setCursorHidden(True)
         properties.setMouseMode(WindowProperties.M_confined)
-        properties.setSize(960, 540)
+        properties.setFullscreen(True)
         app.win.requestProperties(properties)
 
         app.disableMouse()
@@ -76,6 +79,9 @@ class Controls:
     
     
     def captureMouse(self):
+        """
+        Activates mouse capture and centers the pointer for camera control.
+        """
         self.cameraSwingActivated = True
         
         centerX = self.app.win.getXSize() // 2
@@ -93,6 +99,9 @@ class Controls:
         
     
     def releaseMouse(self):
+        """
+        Releases mouse capture and restores default pointer behavior.
+        """
         self.cameraSwingActivated = False
 
         properties = WindowProperties()
@@ -104,11 +113,16 @@ class Controls:
         self.activeKeys[key] = value
     
     def update(self, task):
+        """
+        Updates the camera movement each frame. Checks which keys are pressed and applies corresponding movement to the
+        current camera position. Also rotates the camera based on mouse movement and re-centers the mouse pointer to
+        the middle of the screen.
+        """
         # Heads-up display
         # if self.app.args.pos:
-        pos = self.app.camera.getPos()
-        hpr = self.app.camera.getHpr()
-        self.posText.setText(f"X: {pos.x:.1f} Y: {pos.y:.1f} Z: {pos.z:.1f} | H: {hpr.x:.1f} P: {hpr.y:.1f}")
+        # pos = self.app.camera.getPos()
+        # hpr = self.app.camera.getHpr()
+        # self.posText.setText(f"X: {pos.x:.1f} Y: {pos.y:.1f} Z: {pos.z:.1f} | H: {hpr.x:.1f} P: {hpr.y:.1f}")
         
         dt = globalClock.getDt()
         
