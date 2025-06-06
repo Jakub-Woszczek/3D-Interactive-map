@@ -1,6 +1,3 @@
-from panda3d.core import CardMaker, TextureStage, DirectionalLight, PointLight, LColor, Spotlight
-
-
 def generateBg(app):
     # Ground - ! Not visible tops names !
     # cm = CardMaker("ground")

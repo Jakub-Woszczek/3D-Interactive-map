@@ -10,7 +10,7 @@ class TestGraph(unittest.TestCase):
         tops = [1,26,20,1,14,8]
         
         result,verticals = graph.getElevationProfile(tops)
-        x = list(range(len(result)))  # x = [0, 1, 2, ..., len(result)-1]
+        x = list(range(len(result)))
         
         plt.figure(figsize=(8, 4))
         plt.plot(x, result, label='Elevation')

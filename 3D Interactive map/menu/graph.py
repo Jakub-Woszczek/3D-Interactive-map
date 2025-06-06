@@ -11,7 +11,7 @@ class Graph:
         self.topsCoords = []
 
         # Adjacency graph: adjGraph[topIdx] = [(neighbourTopIdx, edgeIdx), ...]
-        self.adjGraph = self.createAadjacencyGraph()
+        self.adjGraph = self.createAdjacencyGraph()
 
         # Pixel coordinates of routes: routes[routeIdx] = [(pixelRow, pixelCol), ...]
         self.routes = []
@@ -30,7 +30,7 @@ class Graph:
     def importTopsCoords(self):
         self.topsCoords = [(row, col) for _, (row, col) in peaksData]
     
-    def createAadjacencyGraph(self):
+    def createAdjacencyGraph(self):
         """
         Creates graph where
         G[topIdx] = [(neighbourTopIdx,edgeIdx),...]
@@ -51,15 +51,15 @@ class Graph:
                 for line in f:
                     line = line.strip()
                     if line.startswith('(') and line.endswith(')'):
-                        x_str, y_str = line[1:-1].split(',')
-                        x = int(x_str.strip())
-                        y = int(y_str.strip())
+                        xStr, yStr = line[1:-1].split(',')
+                        x = int(xStr.strip())
+                        y = int(yStr.strip())
                         route.append((x, y))
                 self.routes.append(route)
     
     def importMapHeights(self):
-        z_file = "assets/mapa_terenu"
-        self.heightMap = np.loadtxt(z_file, delimiter=",")
+        zFile = "assets/mapaTerenu"
+        self.heightMap = np.loadtxt(zFile, delimiter=",")
     
     def findShortestPath(self, top1Idx, top2Idx):
         """
@@ -108,7 +108,7 @@ class Graph:
         """
         if len(topsIdx) < 2:
             return [],[]
-        def cumsum_list(arr):
+        def cumsumList(arr):
             result = []
             total = 0
             for num in arr:
@@ -162,10 +162,13 @@ class Graph:
             i += 1
 
         
-        return elevationProfile,cumsum_list([0] + distances)
+        return elevationProfile, cumsumList([0] + distances)
     
     def getTravelTime(self, topsIdx):
-        
+        """
+        Computes the total travel time along the shortest path that passes through the given top indices.
+        :return: Total travel time
+        """
         allPaths = [
             self.findShortestPath(a, b)
             for a, b in zip(topsIdx, topsIdx[1:])

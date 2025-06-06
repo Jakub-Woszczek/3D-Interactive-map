@@ -6,10 +6,18 @@ from panda3d.core import GeomTriangles, Geom, GeomNode
 from assets.peaks import peaksData
 
 
-def generateMeshFromCSV(app,meshType, y_file="assets/y.csv", z_file="assets/mapa_terenu"):
+def generateMeshFromCSV(app,meshType, distroFile="assets/gridSpacing.csv", zFile="assets/mapaTerenu"):
+    """
+    Generates a 3D terrain mesh from CSV files containing grid spacing and height data and billboard for each top.
+
+    :param app: Application instance with rendering context.
+    :param meshType: Determines color mapping mode ("height" or "slope").
+    :param distroFile: Path to CSV file with grid spacing data.
+    :param zFile: Path to CSV file with height data.
+    """
     try:
-        distro = np.loadtxt(y_file, delimiter=",")
-        heights = np.loadtxt(z_file, delimiter=",")
+        distro = np.loadtxt(distroFile, delimiter=",")
+        heights = np.loadtxt(zFile, delimiter=",")
     except Exception as e:
         print(f"Błąd przy wczytywaniu plików CSV: {e}")
         return
@@ -29,7 +37,7 @@ def generateMeshFromCSV(app,meshType, y_file="assets/y.csv", z_file="assets/mapa
     triangles = GeomTriangles(Geom.UHStatic)
     vertexIdx = 0
 
-    step = 100
+    step = 1
     for row in range(0, rows - step, step):
         for col in range(0, cols - step, step):
             z0 = heights[row, col] * increaseHeight
@@ -54,15 +62,15 @@ def generateMeshFromCSV(app,meshType, y_file="assets/y.csv", z_file="assets/mapa
             triangles.addVertices(vertexIdx, vertexIdx + 1, vertexIdx + 2)
             vertexIdx += 3
 
-            avg_z2 = (z2 + z1 + z3) / 3
+            avgZ2 = (z2 + z1 + z3) / 3
             if meshType == "height":
-                flat_color2 = heightToColor(avg_z2, Zmin, Zmax)
+                flatColor2 = heightToColor(avgZ2, Zmin, Zmax)
             else:
-                flat_color2 = slopeToColor(p2,p1,p3)
+                flatColor2 = slopeToColor(p2, p1, p3)
             
             for pos in [p2, p1, p3]:
                 vertex.addData3f(*pos)
-                color.addData4f(*flat_color2)
+                color.addData4f(*flatColor2)
             triangles.addVertices(vertexIdx, vertexIdx + 1, vertexIdx + 2)
             vertexIdx += 3
         
@@ -116,13 +124,18 @@ def generateMeshFromCSV(app,meshType, y_file="assets/y.csv", z_file="assets/mapa
         textNodePath.setBillboardPointEye()
 
 def heightToColor(z, Zmin, Zmax):
+    """
+    Maps a height value (z) to a color gradient based on its normalized value within a given range.
+
+    The color transitions smoothly through:
+        - Green (low) → Yellow → Orange → Red (high)
+
+    :param z: Height map value.
+    :param Zmin: Minimum height in the range.
+    :param Zmax: Maximum height in the range.
+    :return: A tuple (R, G, B, A) representing the RGBA color.
+    """
     normZ = (z - Zmin) / (Zmax - Zmin) if Zmax > Zmin else 0
-    """
-    zielony: (0, 1, 0)
-    żółty: (1, 1, 0)
-    pomarańczowy: (1, 0.5, 0)
-    czerwony: (1, 0, 0)
-    """
 
     if normZ < 0.33:
         t = normZ / 0.33
@@ -166,8 +179,8 @@ def slopeToColor(p1,p2,p3):
     
     vertical = Vec3(0, 0, 1)
     dot = normal.dot(vertical)
-    angle_rad = math.acos(max(min(dot, 1.0), -1.0))  # Clamp dot product
-    angle_deg = math.degrees(angle_rad)
+    angleRad = math.acos(max(min(dot, 1.0), -1.0))  # Clamp dot product
+    angleDeg = math.degrees(angleRad)
     
     def lerp(c1, c2, t):
         return tuple(c1[i] + (c2[i] - c1[i]) * t for i in range(4))
@@ -183,8 +196,8 @@ def slopeToColor(p1,p2,p3):
     for i in range(len(breakpoints) - 1):
         a0, c0 = breakpoints[i]
         a1, c1 = breakpoints[i + 1]
-        if a0 <= angle_deg < a1:
-            t = (angle_deg - a0) / (a1 - a0)
+        if a0 <= angleDeg < a1:
+            t = (angleDeg - a0) / (a1 - a0)
             return lerp(c0, c1, t)
     
     return breakpoints[-1][1]
